@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-with-config
+  labels:
+    exercise: "04"
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "LOG_LEVEL=$LOG_LEVEL"
+          echo "DB_HOST=$DB_HOST"
+          echo "Config file contents:"
+          cat /etc/config/app.properties
+          sleep 3600
+      # Inject individual keys as environment variables.
+      env:
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: LOG_LEVEL
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: DB_HOST
+      # Inject all keys from the Secret as environment variables.
+      envFrom:
+        - secretRef:
+            name: app-secret
+      volumeMounts:
+        # Mount the entire ConfigMap as a directory of files.
+        - name: config-volume
+          mountPath: /etc/config
+          readOnly: true
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "16Mi"
+        limits:
+          cpu: "50m"
+          memory: "64Mi"
+  volumes:
+    - name: config-volume
+      configMap:
+        name: app-config

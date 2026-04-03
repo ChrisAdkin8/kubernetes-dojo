@@ -1,0 +1,18 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-encrypted
+  annotations:
+    # Make this the default class so PVCs without a storageClassName get it.
+    storageclass.kubernetes.io/is-default-class: "true"
+  labels:
+    exercise: "05"
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer   # only provision once a Pod is scheduled
+reclaimPolicy: Delete                     # delete the EBS volume when the PVC is deleted
+allowVolumeExpansion: true
+parameters:
+  type: gp3
+  encrypted: "true"
+  # Optional: specify a KMS key ARN for customer-managed encryption.
+  # kmsKeyId: "arn:aws:kms:eu-west-2:123456789012:key/..."

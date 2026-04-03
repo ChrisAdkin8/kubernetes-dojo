@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-clusterip
+  labels:
+    exercise: "03"
+spec:
+  # ClusterIP: reachable only from within the cluster.
+  # Default type when type is omitted.
+  type: ClusterIP
+  selector:
+    app: web-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80

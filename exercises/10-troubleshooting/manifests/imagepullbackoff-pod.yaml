@@ -1,0 +1,25 @@
+# This pod is intentionally broken — it references an image that does not exist.
+# Use it to practice diagnosing ImagePullBackOff.
+#
+# Diagnosis commands:
+#   kubectl describe pod imgpull-pod    # Events section shows the pull error
+#   kubectl get events --field-selector reason=Failed
+apiVersion: v1
+kind: Pod
+metadata:
+  name: imgpull-pod
+  labels:
+    exercise: "10"
+    scenario: imagepullbackoff
+spec:
+  containers:
+    - name: app
+      # This tag does not exist — intentional.
+      image: nginx:this-tag-does-not-exist-99999
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "16Mi"
+        limits:
+          cpu: "50m"
+          memory: "64Mi"

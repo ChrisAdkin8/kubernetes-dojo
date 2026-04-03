@@ -1,0 +1,35 @@
+# This pod is intentionally broken — it exits immediately with code 1.
+# Use it to practice diagnosing CrashLoopBackOff.
+#
+# Diagnosis commands:
+#   kubectl get pod crash-pod
+#   kubectl describe pod crash-pod
+#   kubectl logs crash-pod
+#   kubectl logs crash-pod --previous   # logs from the previous crash
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crash-pod
+  labels:
+    exercise: "10"
+    scenario: crashloopbackoff
+spec:
+  containers:
+    - name: broken
+      image: busybox:1.36
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "Starting up..."
+          echo "Something went wrong!" >&2
+          exit 1
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "16Mi"
+        limits:
+          cpu: "50m"
+          memory: "64Mi"
+  # restartPolicy defaults to Always — the kubelet will restart the container
+  # with exponential back-off: 10s, 20s, 40s ... capped at 5 minutes.
+  restartPolicy: Always

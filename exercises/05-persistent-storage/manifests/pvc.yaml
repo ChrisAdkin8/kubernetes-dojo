@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-data
+  labels:
+    exercise: "05"
+spec:
+  # storageClassName must match the StorageClass name above (or be omitted
+  # to use the default class).
+  storageClassName: gp3-encrypted
+  accessModes:
+    # EBS supports ReadWriteOnce only — one node at a time.
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

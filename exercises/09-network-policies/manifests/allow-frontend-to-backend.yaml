@@ -1,0 +1,67 @@
+---
+# Allow the frontend tier to send HTTP traffic to the backend tier only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+  namespace: default
+  labels:
+    exercise: "09"
+spec:
+  podSelector:
+    matchLabels:
+      tier: backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              tier: frontend
+      ports:
+        - protocol: TCP
+          port: 8080
+
+---
+# Allow the backend tier to reach the database tier on port 5432.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-to-db
+  namespace: default
+  labels:
+    exercise: "09"
+spec:
+  podSelector:
+    matchLabels:
+      tier: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              tier: backend
+      ports:
+        - protocol: TCP
+          port: 5432
+
+---
+# Allow all pods to reach kube-dns for name resolution.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: default
+  labels:
+    exercise: "09"
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

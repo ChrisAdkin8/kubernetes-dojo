@@ -1,0 +1,18 @@
+# Default deny-all policy: blocks all ingress and egress to every pod in
+# the namespace. Apply this first, then layer allow policies on top.
+#
+# NOTE: NetworkPolicy requires a CNI that supports it (e.g. Calico, Cilium).
+# The default Amazon VPC CNI does not enforce NetworkPolicies; you must
+# install the AWS VPC CNI Network Policy add-on or replace the CNI.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: default
+  labels:
+    exercise: "09"
+spec:
+  podSelector: {}   # empty selector matches every pod in the namespace
+  policyTypes:
+    - Ingress
+    - Egress

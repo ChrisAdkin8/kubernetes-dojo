@@ -1,0 +1,36 @@
+---
+# Role: namespaced — grants permissions within a single namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: default
+  labels:
+    exercise: "06"
+rules:
+  # Allow listing and reading pods in the default namespace.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  # Allow reading pod logs.
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+
+---
+# RoleBinding: binds the Role to the ServiceAccount.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-reader-binding
+  namespace: default
+  labels:
+    exercise: "06"
+subjects:
+  - kind: ServiceAccount
+    name: pod-reader-sa
+    namespace: default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: affinity-demo
+  labels:
+    exercise: "07"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: affinity-demo
+  template:
+    metadata:
+      labels:
+        app: affinity-demo
+    spec:
+      affinity:
+        # nodeAffinity: prefer or require certain node labels.
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values: ["amd64"]
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: topology.kubernetes.io/zone
+                    operator: In
+                    values: ["eu-west-2a"]
+
+        # podAntiAffinity: spread pods across nodes for high availability.
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: affinity-demo
+                topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: app
+          image: nginx:1.27-alpine
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"

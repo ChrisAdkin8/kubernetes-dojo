@@ -1,0 +1,34 @@
+# Copy this file to terraform.tfvars and fill in the values.
+# Do NOT commit terraform.tfvars to source control.
+
+# ─── Required ────────────────────────────────────────────────────────────────
+
+# AWS region where the cluster will be deployed.
+region = "eu-west-2"
+
+# ─── Optional overrides ──────────────────────────────────────────────────────
+# Uncomment and edit any value you want to change from the default.
+
+# cluster_name       = "k8s-dojo"
+# kubernetes_version = "1.31"
+
+# vpc_cidr              = "10.0.0.0/16"
+# availability_zones    = ["eu-west-2a", "eu-west-2b"]
+# public_subnet_cidrs   = ["10.0.0.0/24", "10.0.1.0/24"]
+# private_subnet_cidrs  = ["10.0.10.0/24", "10.0.11.0/24"]
+
+# node_instance_types = ["t3.medium"]
+# node_desired_count  = 2
+# node_min_count      = 1
+# node_max_count      = 4
+# node_disk_size_gb   = 50
+# node_capacity_type  = "ON_DEMAND"
+
+# Restrict API server access to your own IP.
+# cluster_endpoint_public_access_cidrs = ["YOUR.IP.ADDRESS/32"]
+
+# tags = {
+#   Project   = "kubernetes-dojo"
+#   ManagedBy = "terraform"
+#   Owner     = "your-name"
+# }

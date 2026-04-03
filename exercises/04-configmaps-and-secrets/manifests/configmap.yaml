@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  labels:
+    exercise: "04"
+data:
+  # Key-value pairs consumed as environment variables.
+  LOG_LEVEL: "info"
+  MAX_CONNECTIONS: "100"
+  # Multi-line value mounted as a file.
+  app.properties: |
+    server.port=8080
+    server.timeout=30
+    feature.dark_mode=true
