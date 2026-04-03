@@ -23,7 +23,15 @@ kubernetes-dojo/
     ├── 07-scheduling/            — nodeSelector, affinity, taints/tolerations, spread
     ├── 08-resource-management/   — Requests/limits, QoS, ResourceQuota, HPA
     ├── 09-network-policies/      — Default deny, allow-listing, DNS egress
-    └── 10-troubleshooting/       — CrashLoopBackOff, OOMKilled, ImagePullBackOff, events
+    ├── 10-troubleshooting/       — CrashLoopBackOff, OOMKilled, ImagePullBackOff, events
+    │
+    │   AWS infrastructure exercises (use aws CLI + kubectl to inspect live resources)
+    │
+    ├── 11-vpc-networking/        — VPC, public/private subnets, IGW, subnet tags for ELB
+    ├── 12-nat-and-routing/       — NAT Gateways, EIPs, route tables, pod egress path
+    ├── 13-eks-control-plane/     — Cluster IAM role, endpoint access, CloudWatch logs, auth
+    ├── 14-oidc-and-irsa/         — OIDC provider, IRSA trust policies, ServiceAccount annotation
+    └── 15-managed-node-groups/   — Node IAM role, ASG, ON_DEMAND vs SPOT, pod IP capacity
 ```
 
 Each exercise directory contains:
@@ -79,6 +87,8 @@ Each exercise README includes a "Clean up" step. Run it before moving to the nex
 
 ## Exercise Overview
 
+### Kubernetes exercises
+
 | # | Topic | Key concepts |
 |---|---|---|
 | 01 | Pods and containers | `kubectl exec`, `kubectl logs`, init containers, sidecars, Pod phases |
@@ -91,6 +101,18 @@ Each exercise README includes a "Clean up" step. Run it before moving to the nex
 | 08 | Resource management | Requests vs limits, QoS classes, ResourceQuota, LimitRange, HPA |
 | 09 | Network Policies | Default deny-all, allow-listing, egress rules, DNS, CNI requirements |
 | 10 | Troubleshooting | CrashLoopBackOff, OOMKilled, ImagePullBackOff, events, debug Pods |
+
+### AWS infrastructure exercises
+
+These exercises use the `aws` CLI and `kubectl` to inspect the live AWS resources that support the cluster. Exercises 11–14 are read-only; exercise 14 creates and deletes IAM resources, and exercise 15 scales the node group up and back down.
+
+| # | Topic | Key concepts |
+|---|---|---|
+| 11 | VPC networking | Public/private subnets, IGW, DNS settings, ELB subnet tags |
+| 12 | NAT Gateways and routing | NAT GW per AZ, EIPs, public/private route tables, pod egress path |
+| 13 | EKS control plane and IAM | Cluster IAM role, endpoint access, CloudWatch logs, access entries |
+| 14 | OIDC and IRSA | OIDC provider, trust policy, ServiceAccount annotation, pod identity |
+| 15 | Managed node groups | Node IAM role, ASG, ON_DEMAND vs SPOT, pod IP capacity, scale operations |
 
 ---
 
