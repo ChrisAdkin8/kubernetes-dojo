@@ -33,3 +33,8 @@ output "oidc_provider_url" {
   description = "URL of the OIDC identity provider (without https://)."
   value       = replace(aws_iam_openid_connect_provider.eks.url, "https://", "")
 }
+
+output "ebs_csi_role_arn" {
+  description = "ARN of the IAM role used by the EBS CSI driver via IRSA."
+  value       = aws_iam_role.ebs_csi.arn
+}

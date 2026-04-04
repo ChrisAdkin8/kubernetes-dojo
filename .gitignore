@@ -1,6 +1,6 @@
 # Terraform
 **/.terraform/
-**/.terraform.lock.hcl
+# .terraform.lock.hcl — intentionally NOT ignored; commit it for provider reproducibility
 **/terraform.tfstate
 **/terraform.tfstate.backup
 **/terraform.tfstate.d/
