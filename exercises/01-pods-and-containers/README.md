@@ -128,7 +128,90 @@ Watch the Pod move through init → running:
 kubectl get pod multi-container-pod -w
 ```
 
-Once running, view logs from each container by name:
+You will see the `log-sidecar` container enter `CrashLoopBackOff`. Continue to Step 6 to diagnose and fix it.
+
+---
+
+## Step 6 — Troubleshoot a CrashLoopBackOff
+
+`CrashLoopBackOff` means a container keeps exiting and Kubernetes keeps restarting it with exponential back-off (10s → 20s → 40s … up to 5 min).
+
+### 6.1 — Confirm which container is crashing
+
+```bash
+kubectl get pod multi-container-pod
+```
+
+Expected output (note `READY: 1/2` — the `app` container is healthy, the sidecar is not):
+
+```
+NAME                  READY   STATUS             RESTARTS   AGE
+multi-container-pod   1/2     CrashLoopBackOff   3          90s
+```
+
+### 6.2 — Read the events
+
+```bash
+kubectl describe pod multi-container-pod
+```
+
+Scroll to the **Events** section at the bottom. You will see repeated `Back-off restarting failed container log-sidecar` entries. The **Containers** section will show the sidecar's last exit code.
+
+### 6.3 — Read the container logs
+
+For a crashed container, grab logs from the *previous* run with `--previous` (`-p`):
+
+```bash
+kubectl logs multi-container-pod -c log-sidecar --previous
+```
+
+You will see:
+
+```
+touch: /var/log/access.log: No such file or directory
+```
+
+**Root cause:** `busybox:1.36` is a minimal image — `/var/log/` does not exist. The `touch` command fails, the shell exits non-zero, and Kubernetes restarts the container in a loop.
+
+### 6.4 — Fix the manifest
+
+Open `manifests/multi-container-pod.yaml` and change the sidecar `args` block from:
+
+```yaml
+args:
+  - |
+    touch /var/log/access.log
+    tail -f /var/log/access.log
+```
+
+to:
+
+```yaml
+args:
+  - |
+    mkdir -p /var/log
+    touch /var/log/access.log
+    tail -f /var/log/access.log
+```
+
+### 6.5 — Re-apply and verify
+
+Delete the broken Pod and re-apply the corrected manifest:
+
+```bash
+kubectl delete pod multi-container-pod
+kubectl apply -f manifests/multi-container-pod.yaml
+kubectl get pod multi-container-pod -w
+```
+
+Expected output once stable:
+
+```
+NAME                  READY   STATUS    RESTARTS   AGE
+multi-container-pod   2/2     Running   0          15s
+```
+
+Now both containers are healthy. View logs from each:
 
 ```bash
 # Main app container
@@ -138,7 +221,7 @@ kubectl logs multi-container-pod -c app
 kubectl logs multi-container-pod -c log-sidecar
 ```
 
-Exec into the sidecar and verify it can see the shared volume:
+Exec into the sidecar and verify the shared volume:
 
 ```bash
 kubectl exec -it multi-container-pod -c log-sidecar -- /bin/sh
@@ -147,9 +230,19 @@ cat /shared/message.txt
 exit
 ```
 
+**CrashLoopBackOff diagnostic checklist:**
+
+| Step | Command | What you are looking for |
+|---|---|---|
+| 1 | `kubectl get pod <name>` | Which container shows `CrashLoopBackOff`; READY ratio |
+| 2 | `kubectl describe pod <name>` | Exit code in **Containers** section; scheduling/pull errors in **Events** |
+| 3 | `kubectl logs <name> -c <container> --previous` | Last stdout/stderr before crash |
+| 4 | Fix the root cause | Bad command, missing file/dir, wrong image, resource OOM |
+| 5 | Delete and re-apply | Confirm `READY` ratio goes to `<n>/<n>` |
+
 ---
 
-## Step 6 — Understand Pod phases
+## Step 8 — Understand Pod phases
 
 Delete and re-create the Pod and watch the phase transitions:
 
@@ -171,7 +264,7 @@ The five Pod phases:
 
 ---
 
-## Step 7 — Clean up
+## Step 9 — Clean up
 
 ```bash
 kubectl delete -f manifests/
@@ -189,6 +282,8 @@ Answer these questions without looking at the manifests:
 4. A Pod is stuck in `Pending`. What is the first command you run and what are you looking for?
 5. What does `READY: 0/2` mean on a Pod?
 6. When would you use an init container instead of a sidecar?
+7. A container is in `CrashLoopBackOff` and `kubectl logs` returns no output. How do you get the logs from the last crash?
+8. A Pod shows `READY: 1/2` and `STATUS: CrashLoopBackOff`. Which container is crashing — and how do you tell?
 
 <details>
 <summary>Answers</summary>
@@ -199,5 +294,7 @@ Answer these questions without looking at the manifests:
 4. `kubectl describe pod <name>` — look at the **Events** section for scheduling failures (insufficient CPU/memory, no matching nodes).
 5. Two containers in the Pod; zero are currently passing their readiness check.
 6. When you need setup to complete *before* the main container starts (e.g. wait for a database, write config files). Sidecars run concurrently.
+7. `kubectl logs <pod> -c <container> --previous` — the `--previous` flag fetches logs from the terminated instance rather than the newly started (and possibly not yet crashed) one.
+8. `kubectl get pod <name>` shows the READY ratio (e.g. `1/2` means one of the two is healthy). `kubectl describe pod <name>` lists each container's last exit code under **Containers** — the one with a non-zero exit code is the crasher.
 
 </details>

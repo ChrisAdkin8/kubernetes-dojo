@@ -38,6 +38,7 @@ spec:
       command: ["/bin/sh", "-c"]
       args:
         - |
+          mkdir -p /var/log
           touch /var/log/access.log
           tail -f /var/log/access.log
       resources:
