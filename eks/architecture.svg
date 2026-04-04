@@ -1,0 +1,344 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1330" viewBox="0 0 1700 1330">
+  <defs>
+    <marker id="arr-white"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#FFFFFF"/></marker>
+    <marker id="arr-green"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00FF7F"/></marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#FFA500"/></marker>
+    <marker id="arr-purple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#DA70D6"/></marker>
+    <marker id="arr-gold"   markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#FF8C00"/></marker>
+    <marker id="arr-teal"   markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#20B2AA"/></marker>
+
+    <marker id="dot-white"  markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><circle cx="3" cy="3" r="2.5" fill="#FFFFFF"/></marker>
+    <marker id="dot-green"  markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><circle cx="3" cy="3" r="2.5" fill="#00FF7F"/></marker>
+    <marker id="dot-orange" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><circle cx="3" cy="3" r="2.5" fill="#FFA500"/></marker>
+    <marker id="dot-purple" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><circle cx="3" cy="3" r="2.5" fill="#DA70D6"/></marker>
+    <marker id="dot-gold"   markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><circle cx="3" cy="3" r="2.5" fill="#FF8C00"/></marker>
+    <marker id="dot-teal"   markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><circle cx="3" cy="3" r="2.5" fill="#20B2AA"/></marker>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect width="1700" height="1330" fill="#000000"/>
+
+  <!-- ── Title ── -->
+  <text x="850" y="24" text-anchor="middle" fill="#FFFFFF" font-family="monospace" font-size="16" font-weight="bold">EKS Cluster — AWS Infrastructure</text>
+
+  <!-- ════════════════════════════════════════════════════
+       INTERNET   x=760 y=35 w=180 h=50  cx=850  bottom=85
+       ════════════════════════════════════════════════════ -->
+  <rect x="760" y="35" width="180" height="50" rx="5" fill="#111111" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="850" y="56" text-anchor="middle" fill="#FFFFFF" font-family="monospace" font-size="13" font-weight="bold">Internet</text>
+  <text x="850" y="73" text-anchor="middle" fill="#AAAAAA" font-family="monospace" font-size="10">0.0.0.0/0</text>
+
+  <!-- ════════════════════════════════════════════════════
+       VPC   x=1 y=100 w=1698 h=870  right=1699  bottom=970
+       ════════════════════════════════════════════════════ -->
+  <rect x="1" y="100" width="1698" height="870" rx="8" fill="#050505" stroke="#FFD700" stroke-width="2" stroke-dasharray="10,4"/>
+  <text x="16" y="118" fill="#FFD700" font-family="monospace" font-size="11" font-weight="bold">VPC  10.0.0.0/16</text>
+
+  <!-- ════════════════════════════════════════════════════
+       INTERNET GATEWAY   x=730 y=169 w=240 h=55  cx=850  cy=196  bottom=224
+       vertically centred between VPC top (y=100) and column tops (y=293)
+       ════════════════════════════════════════════════════ -->
+  <rect x="730" y="169" width="240" height="55" rx="5" fill="#141200" stroke="#FFD700" stroke-width="2"/>
+  <text x="850" y="192" text-anchor="middle" fill="#FFD700" font-family="monospace" font-size="13" font-weight="bold">Internet Gateway</text>
+  <text x="850" y="212" text-anchor="middle" fill="#FFD700" font-family="monospace" font-size="10">{cluster-name}-igw</text>
+
+  <!-- ════════════════════════════════════════════════════
+       AZ-A CONTAINER
+       x=43  y=293  w=510  h=565  right=553  cx=298  bottom=858
+       inner padding 15 px → inner x=58  right=538  w=480  cx=298
+       ════════════════════════════════════════════════════ -->
+  <rect x="43" y="293" width="510" height="565" rx="6" fill="none" stroke="#00BFFF" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="57" y="310" fill="#00BFFF" font-family="monospace" font-size="10" font-weight="bold">Availability Zone: us-east-1a</text>
+
+  <!-- Public Subnet AZ-a   x=58 y=318 w=480 h=130  cx=298  bottom=448 -->
+  <rect x="58" y="318" width="480" height="130" rx="5" fill="#001208" stroke="#00FF7F" stroke-width="1.5"/>
+  <text x="71" y="335" fill="#00FF7F" font-family="monospace" font-size="10" font-weight="bold">Public Subnet  10.0.1.0/24</text>
+  <text x="71" y="348" fill="#00FF7F" font-family="monospace" font-size="9">kubernetes.io/role/elb=1  |  map_public_ip_on_launch=true</text>
+
+  <!-- NAT Gateway AZ-a   x=188 y=358 w=220 h=58  cx=298  right=408  bottom=416 -->
+  <rect x="188" y="358" width="220" height="58" rx="4" fill="#140900" stroke="#FFA500" stroke-width="1.5"/>
+  <text x="298" y="380" text-anchor="middle" fill="#FFA500" font-family="monospace" font-size="12" font-weight="bold">NAT Gateway</text>
+  <text x="298" y="397" text-anchor="middle" fill="#FFA500" font-family="monospace" font-size="10">+ Elastic IP (EIP)</text>
+
+  <text x="420" y="376" fill="#00FF7F" font-family="monospace" font-size="9">Route Table:</text>
+  <text x="420" y="389" fill="#00FF7F" font-family="monospace" font-size="9">0.0.0.0/0 → IGW</text>
+  <text x="420" y="402" fill="#00FF7F" font-family="monospace" font-size="9">assoc: public subnet</text>
+
+  <!-- Private Subnet AZ-a   x=58 y=461 w=480 h=380  cx=298  right=538  bottom=841 -->
+  <rect x="58" y="461" width="480" height="380" rx="5" fill="#120000" stroke="#FF6347" stroke-width="1.5"/>
+  <text x="71" y="478" fill="#FF6347" font-family="monospace" font-size="10" font-weight="bold">Private Subnet  10.0.3.0/24</text>
+  <text x="71" y="491" fill="#FF6347" font-family="monospace" font-size="9">kubernetes.io/role/internal-elb=1</text>
+
+  <!-- Worker Nodes AZ-a   x=68 y=506 w=460 h=110  cx=298  right=528  bottom=616 -->
+  <rect x="68" y="506" width="460" height="110" rx="4" fill="#06061a" stroke="#87CEEB" stroke-width="1.5"/>
+  <text x="298" y="523" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="11" font-weight="bold">Worker Nodes (Managed Node Group)</text>
+  <text x="298" y="539" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">Launch Template: IMDSv2 (hop_limit=1) | gp3 EBS encrypted</text>
+  <text x="298" y="553" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">capacity_type=ON_DEMAND  |  max_unavailable=1</text>
+  <text x="298" y="567" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">scaling: min=1 / desired=2 / max=5</text>
+  <text x="298" y="581" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">k8s.io/cluster-autoscaler/enabled=true</text>
+  <text x="298" y="608" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">role: {cluster}-node-group-role</text>
+
+  <!-- Add-ons AZ-a   x=68 y=628 w=460 h=195  cx=298  right=528  bottom=823 -->
+  <rect x="68" y="628" width="460" height="195" rx="4" fill="#0c0c00" stroke="#F0E68C" stroke-width="1.5"/>
+  <text x="298" y="646" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="11" font-weight="bold">EKS Managed Add-ons (Pods)</text>
+  <text x="298" y="664" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">vpc-cni  —  pod-native VPC IPs via ENI</text>
+  <text x="298" y="680" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">coredns  —  cluster DNS  (depends on vpc-cni)</text>
+  <text x="298" y="696" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">kube-proxy  —  iptables / network rules</text>
+  <text x="298" y="712" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">aws-ebs-csi-driver  —  EBS volume lifecycle</text>
+  <text x="298" y="728" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">  IRSA: ebs-csi-controller-sa → EBS CSI Role</text>
+  <text x="298" y="746" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">resolve_conflicts_on_update = OVERWRITE</text>
+  <text x="298" y="804" text-anchor="middle" fill="#FF6347" font-family="monospace" font-size="9">Route Table: 0.0.0.0/0 → NAT GW (AZ-a)</text>
+
+  <!-- ════════════════════════════════════════════════════
+       EKS CONTROL PLANE
+       x=595  y=293  w=510  h=565  right=1105  cx=850  bottom=858
+       inner padding 15 px → x=610  right=1090  w=480  cx=850
+       ════════════════════════════════════════════════════ -->
+  <rect x="595" y="293" width="510" height="565" rx="6" fill="#0a000a" stroke="#DA70D6" stroke-width="2"/>
+  <text x="850" y="310" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="11" font-weight="bold">EKS Control Plane  (AWS Managed)</text>
+
+  <!-- Cluster Security Group   x=610 y=318 w=480 h=42  bottom=360 -->
+  <rect x="610" y="318" width="480" height="42" rx="4" fill="#160016" stroke="#DA70D6" stroke-width="1"/>
+  <text x="850" y="335" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="10" font-weight="bold">Cluster Security Group</text>
+  <text x="850" y="351" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">egress: all outbound  |  ingress: from node SG</text>
+
+  <!-- API Server   x=610 y=370 w=480 h=58  bottom=428 -->
+  <rect x="610" y="370" width="480" height="58" rx="4" fill="#1a001a" stroke="#DA70D6" stroke-width="1.5"/>
+  <text x="850" y="392" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="12" font-weight="bold">API Server</text>
+  <text x="850" y="408" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">endpoint_public_access=true  |  endpoint_private_access=true</text>
+  <text x="850" y="422" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">auth: API_AND_CONFIG_MAP  |  bootstrap_admin_permissions=true</text>
+
+  <!-- etcd   x=610 y=438 w=230 h=50  cx=725  right=840  bottom=488 -->
+  <rect x="610" y="438" width="230" height="50" rx="4" fill="#0f000f" stroke="#DA70D6" stroke-width="1"/>
+  <text x="725" y="459" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="11" font-weight="bold">etcd</text>
+  <text x="725" y="476" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">cluster state store</text>
+
+  <!-- Scheduler   x=860 y=438 w=230 h=50  cx=975  right=1090  bottom=488 -->
+  <rect x="860" y="438" width="230" height="50" rx="4" fill="#0f000f" stroke="#DA70D6" stroke-width="1"/>
+  <text x="975" y="459" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="11" font-weight="bold">Scheduler</text>
+  <text x="975" y="476" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">pod placement</text>
+
+  <!-- Controller Manager   x=610 y=498 w=480 h=48  bottom=546 -->
+  <rect x="610" y="498" width="480" height="48" rx="4" fill="#0f000f" stroke="#DA70D6" stroke-width="1"/>
+  <text x="850" y="519" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="11" font-weight="bold">Controller Manager</text>
+  <text x="850" y="536" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">node | replication | endpoints | deployment controllers</text>
+
+  <!-- Control Plane Logging   x=610 y=556 w=480 h=58  bottom=614 -->
+  <rect x="610" y="556" width="480" height="58" rx="4" fill="#0f000f" stroke="#DA70D6" stroke-width="1"/>
+  <text x="850" y="576" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="10" font-weight="bold">Control Plane Logging</text>
+  <text x="850" y="592" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">api | audit | authenticator</text>
+  <text x="850" y="607" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">controllerManager | scheduler</text>
+
+  <!-- OIDC Issuer   x=610 y=624 w=480 h=55  bottom=679 -->
+  <rect x="610" y="624" width="480" height="55" rx="4" fill="#001212" stroke="#20B2AA" stroke-width="1.5"/>
+  <text x="850" y="645" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="11" font-weight="bold">OIDC Issuer Endpoint</text>
+  <text x="850" y="661" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="9">https://oidc.eks.{region}.amazonaws.com/id/{hash}</text>
+  <text x="850" y="675" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="9">pod SA token → short-lived AWS creds via IRSA</text>
+
+  <!-- Cluster Config   x=610 y=689 w=480 h=55  bottom=744 -->
+  <rect x="610" y="689" width="480" height="55" rx="4" fill="#0a0a0a" stroke="#DA70D6" stroke-width="1"/>
+  <text x="850" y="709" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="10" font-weight="bold">Cluster Config</text>
+  <text x="850" y="725" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">version: var.kubernetes_version  |  name: var.cluster_name</text>
+  <text x="850" y="739" text-anchor="middle" fill="#DA70D6" font-family="monospace" font-size="9">role_arn: {cluster}-eks-cluster-role</text>
+
+  <!-- ════════════════════════════════════════════════════
+       AZ-B CONTAINER
+       x=1147  y=293  w=510  h=565  right=1657  cx=1402  bottom=858
+       inner padding 15 px → x=1162  right=1642  w=480  cx=1402
+       ════════════════════════════════════════════════════ -->
+  <rect x="1147" y="293" width="510" height="565" rx="6" fill="none" stroke="#00BFFF" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="1161" y="310" fill="#00BFFF" font-family="monospace" font-size="10" font-weight="bold">Availability Zone: us-east-1b</text>
+
+  <!-- Public Subnet AZ-b   x=1162 y=318 w=480 h=130  cx=1402  right=1642  bottom=448 -->
+  <rect x="1162" y="318" width="480" height="130" rx="5" fill="#001208" stroke="#00FF7F" stroke-width="1.5"/>
+  <text x="1175" y="335" fill="#00FF7F" font-family="monospace" font-size="10" font-weight="bold">Public Subnet  10.0.2.0/24</text>
+  <text x="1175" y="348" fill="#00FF7F" font-family="monospace" font-size="9">kubernetes.io/role/elb=1  |  map_public_ip_on_launch=true</text>
+
+  <!-- NAT Gateway AZ-b   x=1292 y=358 w=220 h=58  cx=1402  right=1512  bottom=416 -->
+  <rect x="1292" y="358" width="220" height="58" rx="4" fill="#140900" stroke="#FFA500" stroke-width="1.5"/>
+  <text x="1402" y="380" text-anchor="middle" fill="#FFA500" font-family="monospace" font-size="12" font-weight="bold">NAT Gateway</text>
+  <text x="1402" y="397" text-anchor="middle" fill="#FFA500" font-family="monospace" font-size="10">+ Elastic IP (EIP)</text>
+
+  <text x="1524" y="376" fill="#00FF7F" font-family="monospace" font-size="9">Route Table:</text>
+  <text x="1524" y="389" fill="#00FF7F" font-family="monospace" font-size="9">0.0.0.0/0 → IGW</text>
+  <text x="1524" y="402" fill="#00FF7F" font-family="monospace" font-size="9">assoc: public subnet</text>
+
+  <!-- Private Subnet AZ-b   x=1162 y=461 w=480 h=380  cx=1402  right=1642  bottom=841 -->
+  <rect x="1162" y="461" width="480" height="380" rx="5" fill="#120000" stroke="#FF6347" stroke-width="1.5"/>
+  <text x="1175" y="478" fill="#FF6347" font-family="monospace" font-size="10" font-weight="bold">Private Subnet  10.0.4.0/24</text>
+  <text x="1175" y="491" fill="#FF6347" font-family="monospace" font-size="9">kubernetes.io/role/internal-elb=1</text>
+
+  <!-- Worker Nodes AZ-b   x=1172 y=506 w=460 h=110  cx=1402  right=1632  bottom=616 -->
+  <rect x="1172" y="506" width="460" height="110" rx="4" fill="#06061a" stroke="#87CEEB" stroke-width="1.5"/>
+  <text x="1402" y="523" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="11" font-weight="bold">Worker Nodes (Managed Node Group)</text>
+  <text x="1402" y="539" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">Launch Template: IMDSv2 (hop_limit=1) | gp3 EBS encrypted</text>
+  <text x="1402" y="553" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">capacity_type=ON_DEMAND  |  max_unavailable=1</text>
+  <text x="1402" y="567" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">scaling: min=1 / desired=2 / max=5</text>
+  <text x="1402" y="581" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">k8s.io/cluster-autoscaler/enabled=true</text>
+  <text x="1402" y="608" text-anchor="middle" fill="#87CEEB" font-family="monospace" font-size="9">role: {cluster}-node-group-role</text>
+
+  <!-- Add-ons AZ-b   x=1172 y=628 w=460 h=195  cx=1402  right=1632  bottom=823 -->
+  <rect x="1172" y="628" width="460" height="195" rx="4" fill="#0c0c00" stroke="#F0E68C" stroke-width="1.5"/>
+  <text x="1402" y="646" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="11" font-weight="bold">EKS Managed Add-ons (Pods)</text>
+  <text x="1402" y="664" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">vpc-cni  —  pod-native VPC IPs via ENI</text>
+  <text x="1402" y="680" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">coredns  —  cluster DNS  (depends on vpc-cni)</text>
+  <text x="1402" y="696" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">kube-proxy  —  iptables / network rules</text>
+  <text x="1402" y="712" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">aws-ebs-csi-driver  —  EBS volume lifecycle</text>
+  <text x="1402" y="728" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">  IRSA: ebs-csi-controller-sa → EBS CSI Role</text>
+  <text x="1402" y="746" text-anchor="middle" fill="#F0E68C" font-family="monospace" font-size="9">resolve_conflicts_on_update = OVERWRITE</text>
+  <text x="1402" y="804" text-anchor="middle" fill="#FF6347" font-family="monospace" font-size="9">Route Table: 0.0.0.0/0 → NAT GW (AZ-b)</text>
+
+  <!-- ════════════════════════════════════════════════════
+       IAM SECTION   x=1 y=985 w=1698 h=195  bottom=1180
+       4 boxes w=372, gap=42 throughout (incl. outer margins)
+       ════════════════════════════════════════════════════ -->
+  <rect x="1" y="985" width="1698" height="195" rx="6" fill="#080400" stroke="#FF8C00" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="16" y="1002" fill="#FF8C00" font-family="monospace" font-size="11" font-weight="bold">IAM — AWS Identity and Access Management</text>
+
+  <!-- Node Group Role   x=43 w=372 h=155  cx=229 -->
+  <rect x="43" y="1010" width="372" height="155" rx="5" fill="#0e0600" stroke="#FF8C00" stroke-width="1.5"/>
+  <text x="229" y="1030" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="11" font-weight="bold">Node Group Role</text>
+  <text x="229" y="1048" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">{cluster}-node-group-role</text>
+  <text x="229" y="1064" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">Trusted by: ec2.amazonaws.com</text>
+  <text x="229" y="1080" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">AmazonEKSWorkerNodePolicy</text>
+  <text x="229" y="1096" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">AmazonEKS_CNI_Policy</text>
+  <text x="229" y="1112" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">EC2ContainerRegistryReadOnly</text>
+  <text x="229" y="1128" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">Assumed by: worker EC2 instances</text>
+
+  <!-- EKS Cluster Role   x=457 w=372 h=155  cx=643 -->
+  <rect x="457" y="1010" width="372" height="155" rx="5" fill="#0e0600" stroke="#FF8C00" stroke-width="1.5"/>
+  <text x="643" y="1030" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="11" font-weight="bold">EKS Cluster Role</text>
+  <text x="643" y="1048" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">{cluster}-eks-cluster-role</text>
+  <text x="643" y="1064" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">Trusted by: eks.amazonaws.com</text>
+  <text x="643" y="1080" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">AmazonEKSClusterPolicy</text>
+  <text x="643" y="1096" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">AmazonEKSVPCResourceController</text>
+  <text x="643" y="1112" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">Grants: manage ENIs, LBs, SGs</text>
+  <text x="643" y="1128" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">Assumed by: control plane</text>
+
+  <!-- IAM OIDC Provider   x=871 w=372 h=155  cx=1057 -->
+  <rect x="871" y="1010" width="372" height="155" rx="5" fill="#001212" stroke="#20B2AA" stroke-width="2"/>
+  <text x="1057" y="1030" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="11" font-weight="bold">IAM OIDC Provider</text>
+  <text x="1057" y="1048" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="9">{cluster}-oidc-provider</text>
+  <text x="1057" y="1064" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="9">oidc.eks.{region}.amazonaws.com</text>
+  <text x="1057" y="1080" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="9">Client: sts.amazonaws.com</text>
+  <text x="1057" y="1096" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="9">Thumbprint: TLS cert SHA1</text>
+  <text x="1057" y="1112" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="9">IRSA: SA token → STS AssumeRole</text>
+  <text x="1057" y="1128" text-anchor="middle" fill="#20B2AA" font-family="monospace" font-size="9">No long-lived secrets on nodes</text>
+
+  <!-- EBS CSI Driver Role   x=1285 w=372 h=155  cx=1471 -->
+  <rect x="1285" y="1010" width="372" height="155" rx="5" fill="#0e0600" stroke="#FF8C00" stroke-width="1.5"/>
+  <text x="1471" y="1030" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="11" font-weight="bold">EBS CSI Driver Role  (IRSA)</text>
+  <text x="1471" y="1048" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">{cluster}-ebs-csi-role</text>
+  <text x="1471" y="1064" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">Trusted by: OIDC</text>
+  <text x="1471" y="1080" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">→ ebs-csi-controller-sa</text>
+  <text x="1471" y="1096" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">AmazonEBSCSIDriverPolicy</text>
+  <text x="1471" y="1112" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">Scoped to CSI driver pod only</text>
+  <text x="1471" y="1128" text-anchor="middle" fill="#FF8C00" font-family="monospace" font-size="9">Short-lived creds via OIDC</text>
+
+  <!-- ════════════════════════════════════════════════════
+       CONNECTIONS
+       ════════════════════════════════════════════════════ -->
+
+  <!-- 1. Internet → IGW  (white, vertical)
+       Internet bottom-centre (850,85) → IGW top-centre (850,169) -->
+  <line x1="850" y1="85" x2="850" y2="169"
+        stroke="#FFFFFF" stroke-width="2"
+        marker-start="url(#dot-white)" marker-end="url(#arr-white)"/>
+
+  <!-- 2. IGW → Public Subnet AZ-a  (green)
+       IGW mid-left (730,196) → left along y=196 to x=298 → down to public subnet top (298,318) -->
+  <path d="M 730,196 L 298,196 L 298,318"
+        stroke="#00FF7F" stroke-width="1.5" fill="none"
+        marker-start="url(#dot-green)" marker-end="url(#arr-green)"/>
+
+  <!-- 3. IGW → Public Subnet AZ-b  (green)
+       IGW mid-right (970,196) → right along y=196 to x=1402 → down to public subnet top (1402,318) -->
+  <path d="M 970,196 L 1402,196 L 1402,318"
+        stroke="#00FF7F" stroke-width="1.5" fill="none"
+        marker-start="url(#dot-green)" marker-end="url(#arr-green)"/>
+
+  <!-- 4. NAT GW AZ-a → Private Subnet AZ-a  (orange, vertical)
+       NAT GW bottom-centre (298,416) → private subnet top (298,461) -->
+  <line x1="298" y1="416" x2="298" y2="461"
+        stroke="#FFA500" stroke-width="1.5"
+        marker-start="url(#dot-orange)" marker-end="url(#arr-orange)"/>
+
+  <!-- 5. NAT GW AZ-b → Private Subnet AZ-b  (orange, vertical)
+       (1402,416) → (1402,461) -->
+  <line x1="1402" y1="416" x2="1402" y2="461"
+        stroke="#FFA500" stroke-width="1.5"
+        marker-start="url(#dot-orange)" marker-end="url(#arr-orange)"/>
+
+  <!-- 6. EKS CP ↔ Worker Nodes AZ-a  (purple, bidirectional)
+       EKS CP left (595,561) ↔ Worker Nodes AZ-a right (528,561) -->
+  <line x1="595" y1="561" x2="528" y2="561"
+        stroke="#DA70D6" stroke-width="2"
+        marker-start="url(#arr-purple)" marker-end="url(#arr-purple)"/>
+
+  <!-- 7. EKS CP ↔ Worker Nodes AZ-b  (purple, bidirectional)
+       EKS CP right (1105,561) ↔ Worker Nodes AZ-b left (1172,561) -->
+  <line x1="1105" y1="561" x2="1172" y2="561"
+        stroke="#DA70D6" stroke-width="2"
+        marker-start="url(#arr-purple)" marker-end="url(#arr-purple)"/>
+
+  <!-- 8. Node Group Role → Private Subnet AZ-a  (gold dashed, vertical)
+        IAM box top-centre (229,1010) straight up to private subnet AZ-a bottom (229,841) -->
+  <line x1="229" y1="1010" x2="229" y2="841"
+        stroke="#FF8C00" stroke-width="1.5" stroke-dasharray="5,3"
+        marker-start="url(#dot-gold)" marker-end="url(#arr-gold)"/>
+
+  <!-- 9. EKS Cluster Role → EKS CP  (gold dashed, vertical)
+        (643,1010) straight up to EKS CP bottom (643,858) -->
+  <line x1="643" y1="1010" x2="643" y2="858"
+        stroke="#FF8C00" stroke-width="1.5" stroke-dasharray="5,3"
+        marker-start="url(#dot-gold)" marker-end="url(#arr-gold)"/>
+
+  <!-- 10. OIDC IAM Provider → EKS CP / OIDC Issuer  (teal dashed, vertical)
+         (1057,1010) straight up to EKS CP bottom (1057,858) -->
+  <line x1="1057" y1="1010" x2="1057" y2="858"
+        stroke="#20B2AA" stroke-width="1.5" stroke-dasharray="5,3"
+        marker-start="url(#dot-teal)" marker-end="url(#arr-teal)"/>
+
+  <!-- 11. EBS CSI Driver Role → Add-ons AZ-b  (gold dashed, vertical)
+         (1471,1010) straight up to Add-ons AZ-b bottom (1471,823) -->
+  <line x1="1471" y1="1010" x2="1471" y2="823"
+        stroke="#FF8C00" stroke-width="1.5" stroke-dasharray="5,3"
+        marker-start="url(#dot-gold)" marker-end="url(#arr-gold)"/>
+
+  <!-- ════════════════════════════════════════════════════
+       LEGEND  (horizontal strip at bottom)
+       x=1 y=1195 w=1698 h=115  bottom=1310
+       6 connection types evenly spaced; spacing≈240 px
+       ════════════════════════════════════════════════════ -->
+  <rect x="1" y="1195" width="1698" height="115" rx="6" fill="#0a0a0a" stroke="#444444" stroke-width="1"/>
+  <text x="850" y="1215" text-anchor="middle" fill="#AAAAAA" font-family="monospace" font-size="10" font-weight="bold">Legend</text>
+
+  <!-- item 1: Internet  (x=100) -->
+  <line x1="100" y1="1248" x2="130" y2="1248" stroke="#FFFFFF" stroke-width="2" marker-end="url(#arr-white)"/>
+  <text x="138" y="1252" fill="#FFFFFF" font-family="monospace" font-size="9">Internet traffic</text>
+
+  <!-- item 2: IGW Routing  (x=340) -->
+  <line x1="340" y1="1248" x2="370" y2="1248" stroke="#00FF7F" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <text x="378" y="1252" fill="#00FF7F" font-family="monospace" font-size="9">IGW routing</text>
+
+  <!-- item 3: NAT Egress  (x=580) -->
+  <line x1="580" y1="1248" x2="610" y2="1248" stroke="#FFA500" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+  <text x="618" y="1252" fill="#FFA500" font-family="monospace" font-size="9">NAT egress</text>
+
+  <!-- item 4: CP ↔ Nodes  (x=820) -->
+  <line x1="820" y1="1248" x2="850" y2="1248" stroke="#DA70D6" stroke-width="2" marker-start="url(#arr-purple)" marker-end="url(#arr-purple)"/>
+  <text x="858" y="1252" fill="#DA70D6" font-family="monospace" font-size="9">CP ↔ worker nodes</text>
+
+  <!-- item 5: IAM Role  (x=1060) -->
+  <line x1="1060" y1="1248" x2="1090" y2="1248" stroke="#FF8C00" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-gold)"/>
+  <text x="1098" y="1252" fill="#FF8C00" font-family="monospace" font-size="9">IAM role assumption</text>
+
+  <!-- item 6: OIDC / IRSA  (x=1300) -->
+  <line x1="1300" y1="1248" x2="1330" y2="1248" stroke="#20B2AA" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-teal)"/>
+  <text x="1338" y="1252" fill="#20B2AA" font-family="monospace" font-size="9">OIDC / IRSA</text>
+
+  <!-- note -->
+  <text x="1540" y="1245" fill="#555555" font-family="monospace" font-size="9">● = connection source</text>
+  <text x="1540" y="1260" fill="#555555" font-family="monospace" font-size="9">▶ = connection target</text>
+
+</svg>

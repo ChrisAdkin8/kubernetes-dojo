@@ -4,6 +4,8 @@ This directory contains a Terraform configuration that provisions a production-q
 
 ## Architecture
 
+![EKS Cluster Architecture](architecture.svg)
+
 ```
 VPC (10.0.0.0/16)
 ├── Public subnets  (one per AZ) — NAT gateways, future load balancers
