@@ -13,6 +13,17 @@ kubernetes-dojo/
 │   │   └── node_group/           — Managed node group with launch template
 │   └── README.md
 │
+├── gpu-ml/                       — GPU and ML workloads on Kubernetes
+│   ├── exercises/
+│   │   ├── 01-gpu-node-setup/    — NVIDIA device plugin, nvidia.com/gpu resource, node taints
+│   │   ├── 02-gpu-scheduling/    — GPU requests = limits, tolerations, exclusivity
+│   │   ├── 03-distributed-training/ — Indexed Jobs, PyTorch DDP, torchrun, RANK/WORLD_SIZE
+│   │   ├── 04-model-serving/     — Resource limits, startup probes, GPU warmup, inference
+│   │   ├── 05-gpu-monitoring/    — DCGM Exporter, utilisation metrics, PromQL, alerting
+│   │   ├── 06-storage-for-ml/    — EFS RWX, shared datasets, checkpointing patterns
+│   │   └── 07-cost-and-efficiency/ — Time-slicing, MIG, Spot nodes, ResourceQuota
+│   └── README.md
+│
 └── exercises/
     ├── 01-pods-and-containers/   — Pod lifecycle, exec, logs, init containers, sidecars
     ├── 02-deployments/           — Rolling updates, rollback, scaling
@@ -113,6 +124,23 @@ These exercises use the `aws` CLI and `kubectl` to inspect the live AWS resource
 | 13 | EKS control plane and IAM | Cluster IAM role, endpoint access, CloudWatch logs, access entries |
 | 14 | OIDC and IRSA | OIDC provider, trust policy, ServiceAccount annotation, pod identity |
 | 15 | Managed node groups | Node IAM role, ASG, ON_DEMAND vs SPOT, pod IP capacity, scale operations |
+
+
+## GPU & ML Exercises
+
+These exercises require a GPU node group provisioned alongside the standard cluster. See [`gpu-ml/README.md`](gpu-ml/README.md) for setup instructions.
+
+> **Cost note:** GPU instances are expensive. Scale the GPU node group to zero when not in use.
+
+| # | Topic | Key concepts |
+|---|---|---|
+| 01 | GPU node setup | NVIDIA device plugin, `nvidia.com/gpu` resource, node taints, nvidia-smi |
+| 02 | GPU scheduling | Resource requests = limits, tolerations, node selectors, GPU exclusivity |
+| 03 | Distributed training | Indexed Jobs, PyTorch DDP, torchrun, RANK / WORLD_SIZE, worker coordination |
+| 04 | Model serving | Resource limits, startup probes, GPU warmup, readiness, inference requests |
+| 05 | GPU monitoring | DCGM Exporter, utilisation metrics, PromQL, alerting thresholds |
+| 06 | Storage for ML | EFS RWX, shared dataset access, checkpoint patterns, NVMe scratch |
+| 07 | Cost and efficiency | GPU time-slicing, MIG partitioning, Spot nodes, ResourceQuota |
 
 ---
 

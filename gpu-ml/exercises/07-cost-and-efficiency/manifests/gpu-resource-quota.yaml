@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gpu-quota
+  namespace: ml-team-a
+spec:
+  hard:
+    requests.nvidia.com/gpu: "2"
+    limits.nvidia.com/gpu: "2"
+    pods: "10"

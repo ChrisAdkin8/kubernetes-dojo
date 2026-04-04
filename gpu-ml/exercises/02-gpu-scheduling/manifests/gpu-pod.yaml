@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-workload
+spec:
+  restartPolicy: Never
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  nodeSelector:
+    workload-type: gpu
+  containers:
+    - name: workload
+      image: nvidia/cuda:12.3.0-base-ubuntu22.04
+      # Sleep to hold the GPU so we can observe exclusivity in later steps
+      command: ["sleep", "300"]
+      resources:
+        requests:
+          nvidia.com/gpu: "1"
+        limits:
+          nvidia.com/gpu: "1"

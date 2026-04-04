@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: time-sliced-pod-0
+  labels:
+    exercise: time-slicing
+spec:
+  restartPolicy: Never
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  nodeSelector:
+    workload-type: gpu
+  containers:
+    - name: workload
+      image: nvidia/cuda:12.3.0-base-ubuntu22.04
+      command: ["sleep", "120"]
+      resources:
+        requests:
+          nvidia.com/gpu: "1"
+        limits:
+          nvidia.com/gpu: "1"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: time-sliced-pod-1
+  labels:
+    exercise: time-slicing
+spec:
+  restartPolicy: Never
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  nodeSelector:
+    workload-type: gpu
+  containers:
+    - name: workload
+      image: nvidia/cuda:12.3.0-base-ubuntu22.04
+      command: ["sleep", "120"]
+      resources:
+        requests:
+          nvidia.com/gpu: "1"
+        limits:
+          nvidia.com/gpu: "1"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: time-sliced-pod-2
+  labels:
+    exercise: time-slicing
+spec:
+  restartPolicy: Never
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  nodeSelector:
+    workload-type: gpu
+  containers:
+    - name: workload
+      image: nvidia/cuda:12.3.0-base-ubuntu22.04
+      command: ["sleep", "120"]
+      resources:
+        requests:
+          nvidia.com/gpu: "1"
+        limits:
+          nvidia.com/gpu: "1"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: time-sliced-pod-3
+  labels:
+    exercise: time-slicing
+spec:
+  restartPolicy: Never
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  nodeSelector:
+    workload-type: gpu
+  containers:
+    - name: workload
+      image: nvidia/cuda:12.3.0-base-ubuntu22.04
+      command: ["sleep", "120"]
+      resources:
+        requests:
+          nvidia.com/gpu: "1"
+        limits:
+          nvidia.com/gpu: "1"

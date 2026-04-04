@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: single-gpu-training
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: OnFailure
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      nodeSelector:
+        workload-type: gpu
+      containers:
+        - name: trainer
+          image: pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
+          command:
+            - python
+            - -c
+            - |
+              import torch
+              device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+              print(f"Training on device: {device}")
+              x = torch.randn(64, 10, device=device)
+              y = torch.randn(64, 1, device=device)
+              model = torch.nn.Linear(10, 1).to(device)
+              optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+              for epoch in range(1, 11):
+                  optimizer.zero_grad()
+                  loss = torch.nn.functional.mse_loss(model(x), y)
+                  loss.backward()
+                  optimizer.step()
+                  print(f"Epoch {epoch}/10 — loss: {loss.item():.4f} — device: {device}")
+              print("Training complete.")
+          resources:
+            requests:
+              nvidia.com/gpu: "1"
+            limits:
+              nvidia.com/gpu: "1"

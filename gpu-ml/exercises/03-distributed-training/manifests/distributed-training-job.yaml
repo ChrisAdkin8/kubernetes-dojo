@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: distributed-training
+spec:
+  completions: 2
+  parallelism: 2
+  completionMode: Indexed
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: OnFailure
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      nodeSelector:
+        workload-type: gpu
+      containers:
+        - name: trainer
+          image: pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
+          env:
+            - name: WORLD_SIZE
+              value: "2"
+            - name: RANK
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+          command:
+            - python
+            - -c
+            - |
+              import os, torch
+              rank = int(os.environ.get("RANK", 0))
+              world_size = int(os.environ.get("WORLD_SIZE", 1))
+              device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+              # Simulate per-rank data shard processing
+              total_samples = 1000
+              shard_size = total_samples // world_size
+              start = rank * shard_size
+              end = start + shard_size
+              print(f"[rank {rank} / world_size {world_size}] processing shard {rank} of {world_size} (samples {start}-{end}) on {device}")
+              x = torch.randn(shard_size, 10, device=device)
+              y = torch.randn(shard_size, 1, device=device)
+              model = torch.nn.Linear(10, 1).to(device)
+              for epoch in range(1, 6):
+                  loss = torch.nn.functional.mse_loss(model(x), y)
+                  print(f"[rank {rank}] epoch {epoch}/5 — loss: {loss.item():.4f}")
+              print(f"[rank {rank}] shard complete.")
+          resources:
+            requests:
+              nvidia.com/gpu: "1"
+            limits:
+              nvidia.com/gpu: "1"
