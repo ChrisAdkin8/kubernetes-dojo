@@ -26,6 +26,45 @@ Deployment
 
 When you update the image, the Deployment creates a **new** ReplicaSet and gradually shifts traffic to it (rolling update), keeping the old ReplicaSet around so you can roll back.
 
+### Deployment strategy types
+
+The `spec.strategy.type` field controls how the Deployment transitions from the old version to the new one.
+
+| Strategy | Behaviour | Downtime | Use case |
+|---|---|---|---|
+| `RollingUpdate` (default) | Replaces Pods incrementally — new ones start before old ones stop | None (if tuned correctly) | Production services that must stay available |
+| `Recreate` | Terminates all existing Pods before creating any new ones | Yes — gap between old down and new up | Dev/test, or workloads that cannot run two versions simultaneously (e.g. exclusive DB migrations) |
+
+#### RollingUpdate tuning parameters
+
+```yaml
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1   # max Pods that can be unavailable at any point
+      maxSurge: 1         # max extra Pods above desired count during rollout
+```
+
+Both values accept an integer (absolute count) or a percentage of `spec.replicas`.
+
+| `maxUnavailable` | `maxSurge` | Effect |
+|---|---|---|
+| `0` | `1` | Always full capacity — one new Pod starts before any old Pod stops. Slowest, safest. |
+| `1` | `0` | Constant replica count — one old Pod stops before one new one starts. No extra capacity needed. |
+| `25%` | `25%` | Default. Balanced speed and availability. |
+| `100%` | `0` | All Pods replaced simultaneously — equivalent to `Recreate` with a brief overlap if surge > 0. |
+
+#### Recreate
+
+```yaml
+spec:
+  strategy:
+    type: Recreate
+```
+
+No additional parameters. All running Pods are terminated (scaled to 0) before any new Pods are created. Choose this when two versions of the application cannot safely run at the same time — for example, if the new version applies a database schema migration that the old version cannot read.
+
 ---
 
 ## Step 1 — Create the Deployment
@@ -170,6 +209,8 @@ kubectl delete -f manifests/
 3. A rolling update is stuck — Pods are in `Pending`. What do you check first?
 4. Why does Kubernetes keep the old ReplicaSet after a successful rolling update?
 5. What is the declarative equivalent of `kubectl scale deployment web-app --replicas=5`?
+6. When would you choose `Recreate` over `RollingUpdate`?
+7. A Deployment has `maxUnavailable: 0` and `maxSurge: 1` with 4 replicas. How many Pods will exist at peak during a rolling update, and why?
 
 <details>
 <summary>Answers</summary>
@@ -179,5 +220,7 @@ kubectl delete -f manifests/
 3. `kubectl describe pod <pending-pod>` — look at Events for resource constraints or unschedulable reasons.
 4. To enable rollback. `kubectl rollout undo` scales the old ReplicaSet back up and scales the new one down.
 5. Edit `spec.replicas` in the manifest and run `kubectl apply -f deployment.yaml`.
+6. When two versions of the application cannot safely run simultaneously — for example, if the new version applies a breaking database schema migration that the old version cannot read, or if the application holds an exclusive lock (e.g. a file, port, or singleton resource) that prevents a second instance from starting.
+7. 5 Pods — `maxSurge: 1` allows one extra Pod above the desired 4, so the new ReplicaSet starts one new Pod before any old Pod is terminated. `maxUnavailable: 0` prevents any Pod from being removed until the new one is `Ready`, so at peak there are 4 old + 1 new = 5 running simultaneously.
 
 </details>
