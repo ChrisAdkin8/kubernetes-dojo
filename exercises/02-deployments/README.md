@@ -115,7 +115,7 @@ You can also edit the `replicas` field in the manifest and re-apply — that is 
 
 ## Step 3 — Trigger a rolling update
 
-Update the image to a newer tag:
+Update the image to an older tag to simulate a bad deploy you will later roll back:
 
 ```bash
 kubectl set image deployment/web-app web=nginx:1.26-alpine
@@ -161,15 +161,13 @@ kubectl rollout history deployment/web-app --revision=1
 
 ## Step 5 — Roll back
 
-Roll back to the previous revision (revision 1):
+Roll back to the previous revision using one of these equivalent forms — **run only one**:
 
 ```bash
+# Simple form — undoes the last rollout
 kubectl rollout undo deployment/web-app
-```
 
-Roll back to a specific revision:
-
-```bash
+# Explicit form — targets revision 1 directly
 kubectl rollout undo deployment/web-app --to-revision=1
 ```
 
