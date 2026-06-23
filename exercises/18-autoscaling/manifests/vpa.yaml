@@ -1,0 +1,25 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: php-apache-vpa
+  labels:
+    exercise: "18"
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: php-apache
+  updatePolicy:
+    # Off: VPA computes recommendations but does not evict or modify pods.
+    # Switch to "Auto" to have the updater evict pods with out-of-range resources.
+    updateMode: "Off"
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: "50m"
+          memory: "64Mi"
+        maxAllowed:
+          cpu: "2"
+          memory: "2Gi"
+        controlledResources: ["cpu", "memory"]

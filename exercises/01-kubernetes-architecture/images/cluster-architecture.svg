@@ -1,0 +1,239 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 850" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.10"/>
+    </filter>
+    <linearGradient id="cpGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8f0fe"/>
+      <stop offset="100%" stop-color="#d2e3fc"/>
+    </linearGradient>
+    <linearGradient id="wnGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e6f4ea"/>
+      <stop offset="100%" stop-color="#ceead6"/>
+    </linearGradient>
+    <linearGradient id="apiGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4285f4"/>
+      <stop offset="100%" stop-color="#3367d6"/>
+    </linearGradient>
+    <linearGradient id="etcdGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7b1fa2"/>
+      <stop offset="100%" stop-color="#6a1b9a"/>
+    </linearGradient>
+    <linearGradient id="schedGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f4b400"/>
+      <stop offset="100%" stop-color="#e0a200"/>
+    </linearGradient>
+    <linearGradient id="ctrlGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f9d58"/>
+      <stop offset="100%" stop-color="#0d8c4e"/>
+    </linearGradient>
+    <linearGradient id="cloudGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00acc1"/>
+      <stop offset="100%" stop-color="#0097a7"/>
+    </linearGradient>
+    <linearGradient id="kubeletGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2e7d32"/>
+      <stop offset="100%" stop-color="#256b29"/>
+    </linearGradient>
+    <linearGradient id="proxyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#558b2f"/>
+      <stop offset="100%" stop-color="#4a7c28"/>
+    </linearGradient>
+    <linearGradient id="runtimeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6d4c41"/>
+      <stop offset="100%" stop-color="#5d4037"/>
+    </linearGradient>
+    <linearGradient id="podGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ef6c00"/>
+      <stop offset="100%" stop-color="#e65100"/>
+    </linearGradient>
+    <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#546e7a"/>
+      <stop offset="100%" stop-color="#455a64"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="850" rx="12" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="600" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#202124">Kubernetes Cluster Architecture</text>
+
+  <!-- ==================== CONTROL PLANE ==================== -->
+  <rect x="30" y="55" width="1140" height="385" rx="16" fill="url(#cpGrad)" stroke="#a0c4f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="600" y="87" text-anchor="middle" font-size="15" font-weight="600" fill="#1a73e8" letter-spacing="1.5">CONTROL PLANE</text>
+
+  <!-- kubectl -->
+  <rect x="55" y="110" width="170" height="60" rx="10" fill="url(#userGrad)" filter="url(#shadow)"/>
+  <text x="140" y="138" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">kubectl</text>
+  <text x="140" y="156" text-anchor="middle" font-size="10" fill="#cfd8dc">User / CI Pipeline</text>
+
+  <!-- kube-apiserver -->
+  <rect x="400" y="105" width="330" height="80" rx="10" fill="url(#apiGrad)" filter="url(#shadow)"/>
+  <text x="565" y="143" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">kube-apiserver</text>
+  <text x="565" y="167" text-anchor="middle" font-size="11" fill="#dce8ff">REST API  ·  AuthN  ·  AuthZ  ·  Admission</text>
+
+  <!-- etcd -->
+  <rect x="830" y="105" width="270" height="80" rx="10" fill="url(#etcdGrad)" filter="url(#shadow)"/>
+  <text x="965" y="143" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">etcd</text>
+  <text x="965" y="167" text-anchor="middle" font-size="11" fill="#e8d0f4">Distributed Key-Value Store</text>
+
+  <!-- Source of truth badge -->
+  <rect x="900" y="192" width="130" height="22" rx="6" fill="#f3e5f5" stroke="#ce93d8" stroke-width="1"/>
+  <text x="965" y="208" text-anchor="middle" font-size="10" font-weight="600" fill="#7b1fa2">Source of Truth</text>
+
+  <!-- kubectl → apiserver -->
+  <line x1="225" y1="140" x2="400" y2="140" stroke="#546e7a" stroke-width="2.5"/>
+  <polygon points="400,140 392,134 392,146" fill="#546e7a"/>
+  <text x="312" y="133" text-anchor="middle" font-size="9" fill="#546e7a" font-weight="600">HTTPS REST</text>
+
+  <!-- apiserver ↔ etcd -->
+  <line x1="730" y1="135" x2="830" y2="135" stroke="#5e35b1" stroke-width="2.5"/>
+  <polygon points="830,135 822,129 822,141" fill="#5e35b1"/>
+  <line x1="830" y1="155" x2="730" y2="155" stroke="#5e35b1" stroke-width="2.5"/>
+  <polygon points="730,155 738,149 738,161" fill="#5e35b1"/>
+  <text x="780" y="125" text-anchor="middle" font-size="9" fill="#5e35b1" font-weight="600">read / write</text>
+
+  <!-- ==================== CONTROL PLANE — ROW 2 ==================== -->
+  <!-- Laid out with 130px gaps for arrow routing channels -->
+
+  <!-- kube-scheduler  (x=55..285) -->
+  <rect x="55" y="265" width="230" height="70" rx="10" fill="url(#schedGrad)" filter="url(#shadow)"/>
+  <text x="170" y="297" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">kube-scheduler</text>
+  <text x="170" y="317" text-anchor="middle" font-size="10" fill="#fff8e0">Filter → Score → Bind</text>
+
+  <!-- kube-controller-manager  (x=455..695) -->
+  <rect x="455" y="265" width="240" height="70" rx="10" fill="url(#ctrlGrad)" filter="url(#shadow)"/>
+  <text x="575" y="297" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">kube-controller-manager</text>
+  <text x="575" y="317" text-anchor="middle" font-size="10" fill="#e0f2e9">Deployment · ReplicaSet · Node · Job</text>
+
+  <!-- cloud-controller-manager  (x=785..1025) -->
+  <rect x="785" y="265" width="240" height="70" rx="10" fill="url(#cloudGrad)" filter="url(#shadow)"/>
+  <text x="905" y="297" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">cloud-controller-manager</text>
+  <text x="905" y="317" text-anchor="middle" font-size="10" fill="#e0f7fa">Node lifecycle · Routes · Load Balancers</text>
+
+  <!-- Gap centres for routing: x≈370 (gap 285–455)  and  x≈740 (gap 695–785) -->
+
+  <!-- Scheduler → apiserver  -->
+  <path d="M 230 265 Q 310 230, 430 185" fill="none" stroke="#e0a200" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="430,185 424,192 434,192" fill="#e0a200"/>
+  <text x="300" y="222" text-anchor="middle" font-size="9" fill="#b58900" font-weight="600">watch &amp; bind</text>
+
+  <!-- Controller-manager → apiserver -->
+  <line x1="575" y1="265" x2="575" y2="185" stroke="#0d8c4e" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="575,185 569,193 581,193" fill="#0d8c4e"/>
+  <text x="595" y="232" text-anchor="start" font-size="9" fill="#0d8c4e" font-weight="600">reconcile</text>
+
+  <!-- Cloud-controller → apiserver -->
+  <path d="M 830 265 Q 770 230, 700 185" fill="none" stroke="#0097a7" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="700,185 696,192 706,192" fill="#0097a7"/>
+  <text x="790" y="222" text-anchor="middle" font-size="9" fill="#00838f" font-weight="600">cloud ops</text>
+
+  <!-- ==================== WORKER NODES ==================== -->
+  <!-- Worker Node 1  (x=30..570, y=475..810) -->
+  <rect x="30" y="475" width="540" height="335" rx="16" fill="url(#wnGrad)" stroke="#a8dab5" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="300" y="507" text-anchor="middle" font-size="15" font-weight="600" fill="#1b5e20" letter-spacing="1.5">WORKER NODE 1</text>
+
+  <!-- kube-proxy 1 (left) -->
+  <rect x="60" y="525" width="200" height="60" rx="10" fill="url(#proxyGrad)" filter="url(#shadow)"/>
+  <text x="160" y="555" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">kube-proxy</text>
+  <text x="160" y="572" text-anchor="middle" font-size="9" fill="#dcedc8">iptables / ipvs rules</text>
+
+  <!-- kubelet 1 (right) -->
+  <rect x="300" y="525" width="200" height="60" rx="10" fill="url(#kubeletGrad)" filter="url(#shadow)"/>
+  <text x="400" y="555" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">kubelet</text>
+  <text x="400" y="572" text-anchor="middle" font-size="9" fill="#c8e6c9">Node agent · CRI calls</text>
+
+  <!-- Pods 1 (left) -->
+  <rect x="60" y="610" width="100" height="70" rx="10" fill="url(#podGrad)" filter="url(#shadow)"/>
+  <text x="110" y="645" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Pod</text>
+  <text x="110" y="662" text-anchor="middle" font-size="9" fill="#ffe0b2">app-a</text>
+
+  <rect x="170" y="610" width="100" height="70" rx="10" fill="url(#podGrad)" filter="url(#shadow)"/>
+  <text x="220" y="645" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Pod</text>
+  <text x="220" y="662" text-anchor="middle" font-size="9" fill="#ffe0b2">app-b</text>
+
+  <!-- Container Runtime 1 (right) -->
+  <rect x="300" y="615" width="200" height="60" rx="10" fill="url(#runtimeGrad)" filter="url(#shadow)"/>
+  <text x="400" y="643" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Container Runtime</text>
+  <text x="400" y="660" text-anchor="middle" font-size="9" fill="#d7ccc8">containerd / CRI-O</text>
+
+  <!-- kubelet1 → runtime1 -->
+  <line x1="400" y1="585" x2="400" y2="615" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="400,615 394,607 406,607" fill="#2e7d32"/>
+  <text x="420" y="604" font-size="9" fill="#2e7d32" font-weight="600">CRI</text>
+
+  <!-- runtime1 → pods1 -->
+  <line x1="300" y1="645" x2="270" y2="645" stroke="#5d4037" stroke-width="2"/>
+  <polygon points="270,645 278,639 278,651" fill="#5d4037"/>
+
+  <!-- kubelet1 → apiserver  (straight vertical through gap at x=420) -->
+  <circle cx="420" cy="525" r="3" fill="#2e7d32"/>
+  <line x1="420" y1="525" x2="420" y2="185" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="420,185 414,193 426,193" fill="#2e7d32"/>
+
+  <!-- Shared label between the two kubelet arrows -->
+  <text x="560" y="380" text-anchor="middle" font-size="9" fill="#2e7d32" font-weight="600">watch PodSpecs · report status</text>
+
+  <!-- ==================== Worker Node 2  (x=630..1170, y=475..810) ==================== -->
+  <rect x="630" y="475" width="540" height="335" rx="16" fill="url(#wnGrad)" stroke="#a8dab5" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="900" y="507" text-anchor="middle" font-size="15" font-weight="600" fill="#1b5e20" letter-spacing="1.5">WORKER NODE 2</text>
+
+  <!-- kubelet 2 -->
+  <rect x="660" y="525" width="200" height="60" rx="10" fill="url(#kubeletGrad)" filter="url(#shadow)"/>
+  <text x="760" y="555" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">kubelet</text>
+  <text x="760" y="572" text-anchor="middle" font-size="9" fill="#c8e6c9">Node agent · CRI calls</text>
+
+  <!-- kube-proxy 2 -->
+  <rect x="900" y="525" width="200" height="60" rx="10" fill="url(#proxyGrad)" filter="url(#shadow)"/>
+  <text x="1000" y="555" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">kube-proxy</text>
+  <text x="1000" y="572" text-anchor="middle" font-size="9" fill="#dcedc8">iptables / ipvs rules</text>
+
+  <!-- Container Runtime 2 -->
+  <rect x="660" y="615" width="200" height="60" rx="10" fill="url(#runtimeGrad)" filter="url(#shadow)"/>
+  <text x="760" y="643" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Container Runtime</text>
+  <text x="760" y="660" text-anchor="middle" font-size="9" fill="#d7ccc8">containerd / CRI-O</text>
+
+  <!-- Pods 2 -->
+  <rect x="900" y="610" width="100" height="70" rx="10" fill="url(#podGrad)" filter="url(#shadow)"/>
+  <text x="950" y="645" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Pod</text>
+  <text x="950" y="662" text-anchor="middle" font-size="9" fill="#ffe0b2">app-c</text>
+
+  <rect x="1020" y="610" width="100" height="70" rx="10" fill="url(#podGrad)" filter="url(#shadow)"/>
+  <text x="1070" y="645" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Pod</text>
+  <text x="1070" y="662" text-anchor="middle" font-size="9" fill="#ffe0b2">app-d</text>
+
+  <!-- kubelet2 → runtime2 -->
+  <line x1="760" y1="585" x2="760" y2="615" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="760,615 754,607 766,607" fill="#2e7d32"/>
+  <text x="790" y="604" font-size="9" fill="#2e7d32" font-weight="600">CRI</text>
+
+  <!-- runtime2 → pods2 -->
+  <line x1="860" y1="645" x2="900" y2="645" stroke="#5d4037" stroke-width="2"/>
+  <polygon points="900,645 892,639 892,651" fill="#5d4037"/>
+
+  <!-- kubelet2 → apiserver  (straight vertical through gap at x=720) -->
+  <circle cx="720" cy="525" r="3" fill="#2e7d32"/>
+  <line x1="720" y1="525" x2="720" y2="185" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="720,185 714,193 726,193" fill="#2e7d32"/>
+
+  <!-- ==================== Pod network link ==================== -->
+  <line x1="520" y1="735" x2="680" y2="735" stroke="#66bb6a" stroke-width="2" stroke-dasharray="8,4"/>
+  <text x="600" y="728" text-anchor="middle" font-size="10" fill="#388e3c" font-weight="600">Pod Network (CNI overlay / underlay)</text>
+
+  <!-- ==================== Legend ==================== -->
+  <rect x="40" y="825" width="12" height="12" rx="2" fill="#4285f4"/>
+  <text x="58" y="836" font-size="10" fill="#444">API layer</text>
+  <rect x="130" y="825" width="12" height="12" rx="2" fill="#7b1fa2"/>
+  <text x="148" y="836" font-size="10" fill="#444">Storage</text>
+  <rect x="210" y="825" width="12" height="12" rx="2" fill="#f4b400"/>
+  <text x="228" y="836" font-size="10" fill="#444">Scheduling</text>
+  <rect x="310" y="825" width="12" height="12" rx="2" fill="#0f9d58"/>
+  <text x="328" y="836" font-size="10" fill="#444">Controllers</text>
+  <rect x="410" y="825" width="12" height="12" rx="2" fill="#2e7d32"/>
+  <text x="428" y="836" font-size="10" fill="#444">Node agents</text>
+  <rect x="520" y="825" width="12" height="12" rx="2" fill="#ef6c00"/>
+  <text x="538" y="836" font-size="10" fill="#444">Workloads</text>
+  <rect x="610" y="825" width="12" height="12" rx="2" fill="#6d4c41"/>
+  <text x="628" y="836" font-size="10" fill="#444">Runtime</text>
+</svg>

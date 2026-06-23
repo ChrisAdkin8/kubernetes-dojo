@@ -25,24 +25,27 @@ kubernetes-dojo/
 │   └── README.md
 │
 └── exercises/
-    ├── 01-pods-and-containers/   — Pod lifecycle, exec, logs, init containers, sidecars
-    ├── 02-deployments/           — Rolling updates, rollback, scaling
-    ├── 03-services/              — ClusterIP, NodePort, LoadBalancer, DNS, port-forward
-    ├── 04-configmaps-and-secrets/— Injecting config and secrets, update behaviour
-    ├── 05-persistent-storage/    — StorageClass, PVC, EBS CSI driver, data persistence
-    ├── 06-rbac/                  — ServiceAccounts, Roles, Bindings, IRSA
-    ├── 07-scheduling/            — nodeSelector, affinity, taints/tolerations, spread
-    ├── 08-resource-management/   — Requests/limits, QoS, ResourceQuota, HPA
-    ├── 09-network-policies/      — Default deny, allow-listing, DNS egress
-    ├── 10-troubleshooting/       — CrashLoopBackOff, OOMKilled, ImagePullBackOff, events
+    ├── 01-kubernetes-architecture/ — Control plane, worker nodes, API request lifecycle
+    ├── 02-pods-and-containers/   — Pod lifecycle, exec, logs, init containers, sidecars
+    ├── 03-deployments/           — Rolling updates, rollback, scaling
+    ├── 04-daemonsets-and-statefulsets/ — DaemonSet, StatefulSet, ordered scaling
+    ├── 05-services/              — ClusterIP, NodePort, LoadBalancer, DNS, port-forward
+    ├── 06-configmaps-and-secrets/— Injecting config and secrets, update behaviour
+    ├── 07-persistent-storage/    — StorageClass, PVC, EBS CSI driver, data persistence
+    ├── 08-rbac/                  — ServiceAccounts, Roles, Bindings, IRSA
+    ├── 09-scheduling/            — nodeSelector, affinity, taints/tolerations, spread
+    ├── 10-resource-management/   — Requests/limits, QoS, ResourceQuota, LimitRange, HPA
+    ├── 11-network-policies/      — Default deny, allow-listing, DNS egress
+    ├── 12-troubleshooting/       — CrashLoopBackOff, OOMKilled, ImagePullBackOff, events
     │
     │   AWS infrastructure exercises (use aws CLI + kubectl to inspect live resources)
     │
-    ├── 11-vpc-networking/        — VPC, public/private subnets, IGW, subnet tags for ELB
-    ├── 12-nat-and-routing/       — NAT Gateways, EIPs, route tables, pod egress path
-    ├── 13-eks-control-plane/     — Cluster IAM role, endpoint access, CloudWatch logs, auth
-    ├── 14-oidc-and-irsa/         — OIDC provider, IRSA trust policies, ServiceAccount annotation
-    └── 15-managed-node-groups/   — Node IAM role, ASG, ON_DEMAND vs SPOT, pod IP capacity
+    ├── 13-vpc-networking/        — VPC, public/private subnets, IGW, subnet tags for ELB
+    ├── 14-nat-and-routing/       — NAT Gateways, EIPs, route tables, pod egress path
+    ├── 15-eks-control-plane/     — Cluster IAM role, endpoint access, CloudWatch logs, auth
+    ├── 16-oidc-and-irsa/         — OIDC provider, IRSA trust policies, ServiceAccount annotation
+    ├── 17-managed-node-groups/   — Node IAM role, ASG, ON_DEMAND vs SPOT, pod IP capacity
+    └── 18-autoscaling/           — HPA, VPA, Cluster Autoscaler, scaling strategies
 ```
 
 Each exercise directory contains:
@@ -85,9 +88,8 @@ kubectl get pods -n kube-system
 Each exercise is self-contained. They are roughly ordered by complexity — start at 01 and work forward.
 
 ```bash
-cd exercises/01-pods-and-containers
-# read the README, then:
-kubectl apply -f manifests/nginx-pod.yaml
+cd exercises/01-kubernetes-architecture
+# read the README, then work through the steps
 ```
 
 ### Step 3 — Clean up after each exercise
@@ -102,28 +104,31 @@ Each exercise README includes a "Clean up" step. Run it before moving to the nex
 
 | # | Topic | Key concepts |
 |---|---|---|
-| 01 | Pods and containers | `kubectl exec`, `kubectl logs`, init containers, sidecars, Pod phases |
-| 02 | Deployments | Rolling update, rollback, `kubectl rollout`, ReplicaSet |
-| 03 | Services | ClusterIP, NodePort, LoadBalancer, DNS, port-forward, Endpoints |
-| 04 | ConfigMaps and Secrets | `envFrom`, `valueFrom`, volume mounts, update propagation |
-| 05 | Persistent storage | StorageClass, PVC, EBS gp3, `WaitForFirstConsumer`, data persistence |
-| 06 | RBAC | ServiceAccount, Role, ClusterRole, RoleBinding, `auth can-i`, IRSA |
-| 07 | Scheduling | `nodeSelector`, affinity/anti-affinity, taints, tolerations, topology spread |
-| 08 | Resource management | Requests vs limits, QoS classes, ResourceQuota, LimitRange, HPA |
-| 09 | Network Policies | Default deny-all, allow-listing, egress rules, DNS, CNI requirements |
-| 10 | Troubleshooting | CrashLoopBackOff, OOMKilled, ImagePullBackOff, events, debug Pods |
+| 01 | Kubernetes architecture | Control plane, worker nodes, etcd, scheduler, kubelet, API request lifecycle |
+| 02 | Pods and containers | `kubectl exec`, `kubectl logs`, init containers, sidecars, Pod phases |
+| 03 | Deployments | Rolling update, rollback, `kubectl rollout`, ReplicaSet |
+| 04 | DaemonSets and StatefulSets | DaemonSet per-node scheduling, StatefulSet ordered scaling and stable identity |
+| 05 | Services | ClusterIP, NodePort, LoadBalancer, DNS, port-forward, Endpoints |
+| 06 | ConfigMaps and Secrets | `envFrom`, `valueFrom`, volume mounts, update propagation |
+| 07 | Persistent storage | StorageClass, PVC, EBS gp3, `WaitForFirstConsumer`, data persistence |
+| 08 | RBAC | ServiceAccount, Role, ClusterRole, RoleBinding, `auth can-i`, IRSA |
+| 09 | Scheduling | `nodeSelector`, affinity/anti-affinity, taints, tolerations, topology spread |
+| 10 | Resource management | Requests vs limits, QoS classes, ResourceQuota, LimitRange, HPA |
+| 11 | Network Policies | Default deny-all, allow-listing, egress rules, DNS, CNI requirements |
+| 12 | Troubleshooting | CrashLoopBackOff, OOMKilled, ImagePullBackOff, events, debug Pods |
+| 18 | Autoscaling | HPA (CPU/memory/behavior), VPA (recommender/updater/modes), Cluster Autoscaler |
 
 ### AWS infrastructure exercises
 
-These exercises use the `aws` CLI and `kubectl` to inspect the live AWS resources that support the cluster. Exercises 11–14 are read-only; exercise 14 creates and deletes IAM resources, and exercise 15 scales the node group up and back down.
+These exercises use the `aws` CLI and `kubectl` to inspect the live AWS resources that support the cluster. Exercises 13–15 are read-only; exercise 16 creates and deletes IAM resources, and exercise 17 scales the node group up and back down. Exercise 18 (Autoscaling) also creates IAM resources for the Cluster Autoscaler.
 
 | # | Topic | Key concepts |
 |---|---|---|
-| 11 | VPC networking | Public/private subnets, IGW, DNS settings, ELB subnet tags |
-| 12 | NAT Gateways and routing | NAT GW per AZ, EIPs, public/private route tables, pod egress path |
-| 13 | EKS control plane and IAM | Cluster IAM role, endpoint access, CloudWatch logs, access entries |
-| 14 | OIDC and IRSA | OIDC provider, trust policy, ServiceAccount annotation, pod identity |
-| 15 | Managed node groups | Node IAM role, ASG, ON_DEMAND vs SPOT, pod IP capacity, scale operations |
+| 13 | VPC networking | Public/private subnets, IGW, DNS settings, ELB subnet tags |
+| 14 | NAT Gateways and routing | NAT GW per AZ, EIPs, public/private route tables, pod egress path |
+| 15 | EKS control plane and IAM | Cluster IAM role, endpoint access, CloudWatch logs, access entries |
+| 16 | OIDC and IRSA | OIDC provider, trust policy, ServiceAccount annotation, pod identity |
+| 17 | Managed node groups | Node IAM role, ASG, ON_DEMAND vs SPOT, pod IP capacity, scale operations |
 
 
 ## GPU & ML Exercises
