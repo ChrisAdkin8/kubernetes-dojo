@@ -21,11 +21,15 @@ Managed Node Group "general"
 ├── Encrypted gp3 root volumes
 └── IAM role with EKSWorkerNode + CNI + ECR + EBS CSI policies
 
+Managed Node Groups from gpu_node_groups (none by default)
+├── AL2023 NVIDIA AMI, labels workload-type=gpu and nvidia.com/gpu.present=true
+└── Taint nvidia.com/gpu=present:NoSchedule, desired size 0
+
 Managed Add-ons
-├── vpc-cni
+├── vpc-cni             — network policy enforcement enabled
 ├── coredns
 ├── kube-proxy
-└── aws-ebs-csi-driver
+└── aws-ebs-csi-driver  — creates the default StorageClass
 ```
 
 ## Prerequisites
@@ -34,7 +38,7 @@ Managed Add-ons
 |---|---|---|
 | Terraform | >= 1.9.0 | https://developer.hashicorp.com/terraform/install |
 | AWS CLI | >= 2.0 | https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html |
-| kubectl | >= 1.29 | https://kubernetes.io/docs/tasks/tools/ |
+| kubectl | >= 1.35 | https://kubernetes.io/docs/tasks/tools/ |
 
 Configure your AWS credentials before running any Terraform commands:
 
@@ -125,7 +129,7 @@ eks/
 |---|---|---|
 | `region` | `eu-west-2` | AWS region |
 | `cluster_name` | `k8s-dojo` | Name applied to all resources |
-| `kubernetes_version` | `1.31` | EKS Kubernetes version |
+| `kubernetes_version` | `1.36` | EKS Kubernetes version |
 | `vpc_cidr` | `10.0.0.0/16` | VPC CIDR block |
 | `availability_zones` | `[eu-west-2a, eu-west-2b]` | AZs for subnet placement |
 | `node_instance_types` | `[t3.medium]` | EC2 instance types for nodes |
@@ -134,6 +138,7 @@ eks/
 | `node_max_count` | `4` | Maximum node count |
 | `node_disk_size_gb` | `50` | Root EBS volume size |
 | `node_capacity_type` | `ON_DEMAND` | `ON_DEMAND` or `SPOT` |
+| `gpu_node_groups` | `{}` | GPU node groups, keyed by name; see [`gpu-ml/README.md`](../gpu-ml/README.md) |
 | `cluster_endpoint_public_access` | `true` | Expose API server publicly |
 | `cluster_endpoint_public_access_cidrs` | `[0.0.0.0/0]` | Allowed CIDRs for public access |
 
@@ -144,7 +149,7 @@ eks/
 - **Encrypted EBS volumes** — launch template enables EBS encryption on root volumes.
 - **IRSA enabled** — OIDC provider created so ServiceAccounts can assume IAM roles without static credentials.
 - **CloudWatch control-plane logs** — all five log types enabled for auditability.
-- **Managed add-ons** — VPC CNI, CoreDNS, kube-proxy, and EBS CSI driver are managed by AWS and auto-patched.
+- **Managed add-ons** — VPC CNI (with network policy enforcement on), CoreDNS, kube-proxy, and EBS CSI driver (which creates the default StorageClass) are managed by AWS and auto-patched.
 - **Access entries** — authentication mode set to `API_AND_CONFIG_MAP`; the cluster creator receives admin permissions automatically.
 - **Node autoscaler tags** — node group tagged for the [Cluster Autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler/cloudprovider/aws).
 
@@ -201,7 +206,7 @@ Answer these without looking at the Terraform code or AWS console:
 
 11. Three cost-reducing changes:
     - **Use Spot instances** (`node_capacity_type = "SPOT"`) — up to 70% cheaper for nodes; trade-off is that nodes can be reclaimed with 2 minutes' notice, so workloads must tolerate interruption.
-    - **Collapse to one AZ** (`availability_zones = ["eu-west-2a"]`) — eliminates one NAT gateway (~$32/month) and one set of subnet resources; trade-off is loss of AZ-level fault tolerance.
+    - **Run one node** (`node_desired_count = 1` before the first apply, or `aws eks update-nodegroup-config` afterwards, because Terraform ignores the desired size once the node group exists) — saves ~$34/month for one t3.medium; trade-off is no second node to spread Pods across or fail over to.
     - **Destroy when not in use** (`terraform destroy` + `terraform apply` when needed) — eliminates the $73/month control plane fee and node costs; trade-off is the 15–20 minute spin-up time before exercises can begin.
 
 12. The EBS volumes were created by the **EBS CSI driver** in response to PersistentVolumeClaim objects inside the cluster. Terraform only manages resources it created directly; PVs and their backing EBS volumes are Kubernetes-managed and are deleted by the EBS CSI driver only if the StorageClass `reclaimPolicy` is `Delete` **and** the PVC is deleted before the cluster is destroyed. If the cluster is destroyed first, the CSI driver is gone and cannot clean up. To prevent orphaned volumes: delete all PVCs (`kubectl delete pvc --all -A`) and confirm the PVs are removed before running `terraform destroy`.
@@ -215,3 +220,9 @@ terraform destroy
 ```
 
 > **Warning:** This deletes the VPC, all subnets, the EKS cluster, and the EBS volumes for any PersistentVolumeClaims with `reclaimPolicy: Delete`. Delete all PVCs before destroying if you want to retain the data.
+
+### Existing clusters
+
+A cluster created before the Kubernetes version default was raised can't be updated in place with `terraform apply`: EKS updates a cluster one minor version at a time, and a cluster that has already entered extended support can't switch to the `STANDARD` upgrade policy. Run `terraform destroy`, then `terraform apply`. If `terraform.tfvars` has a `gpu_node_groups` block copied from an earlier version of `gpu-ml/README.md`, set its `desired_size` to 0 before the apply (see the warning there).
+
+The default version leaves EKS standard support on 2027-08-02. A cluster still running on that date is upgraded by EKS to the next minor version; before your next `apply`, set `kubernetes_version` to the version `aws eks describe-cluster --name <cluster> --query cluster.version` prints, or Terraform asks for a downgrade, which EKS can't do. The repo's default has to be raised before that date too.

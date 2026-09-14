@@ -54,6 +54,17 @@ resource "aws_eks_node_group" "this" {
   subnet_ids      = var.private_subnet_ids
   instance_types  = var.instance_types
   capacity_type   = var.capacity_type
+  ami_type        = var.ami_type
+  labels          = var.labels
+
+  dynamic "taint" {
+    for_each = var.taints
+    content {
+      key    = taint.value.key
+      value  = taint.value.value
+      effect = taint.value.effect
+    }
+  }
 
   scaling_config {
     desired_size = var.desired_count

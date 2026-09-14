@@ -48,12 +48,13 @@ kubectl apply -f manifests/storage-class.yaml
 kubectl get storageclass gp3-encrypted
 ```
 
-Check if it is set as the default:
+List all the StorageClasses:
 
 ```bash
 kubectl get storageclass
-# Look for (default) next to the name
 ```
+
+`gp3-encrypted` is not the default. The `(default)` marker is on `ebs-csi-default-sc`, which the cluster's EBS CSI driver add-on creates, so PVCs that name no class (like the StatefulSet in exercise 04) still get a volume. It provisions gp3 volumes but doesn't ask for encryption. That's why the exercise PVC names `gp3-encrypted` explicitly: it wants encrypted volumes, and it doesn't depend on which class happens to be the default.
 
 ---
 

@@ -1,7 +1,7 @@
 # ─── NAT Gateways ─────────────────────────────────────────────────────────────
 # One NAT Gateway per AZ provides HA egress for private subnet worker nodes.
-# To reduce cost in non-production environments, set the count to 1 so all
-# private subnets share a single NAT Gateway.
+# The number of NAT Gateways (and EIPs) follows var.availability_zones, which
+# must have at least two entries.
 
 resource "aws_eip" "nat" {
   count  = length(var.availability_zones)

@@ -25,7 +25,7 @@ EKS Cluster
 |---|---|---|
 | Terraform | >= 1.9.0 | https://developer.hashicorp.com/terraform/install |
 | AWS CLI | >= 2.0 | https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html |
-| kubectl | >= 1.29 | https://kubernetes.io/docs/tasks/tools/ |
+| kubectl | >= 1.35 | https://kubernetes.io/docs/tasks/tools/ |
 | Helm | >= 3.14 | https://helm.sh/docs/intro/install/ |
 
 Configure kubeconfig from the EKS cluster before starting any exercise:
@@ -41,37 +41,62 @@ kubectl get nodes
 
 ## Provisioning GPU Nodes
 
-GPU nodes are a separate managed node group added alongside the general node group in the EKS Terraform module. Add to `eks/terraform.tfvars`:
+GPU nodes are a separate managed node group added alongside the general node group by the EKS Terraform configuration (`gpu_node_groups` in `eks/variables.tf`). Each GPU group uses the AL2023 NVIDIA AMI, and gets the labels `workload-type=gpu` and `nvidia.com/gpu.present=true` and the taint `nvidia.com/gpu=present:NoSchedule` by default, which is what the exercises and the NVIDIA device plugin chart expect.
+
+> **Warning:** If `eks/terraform.tfvars` already has a `gpu_node_groups` block copied from an earlier version of this README, the next `terraform apply` acts on it. Set its `desired_size` to 0 first, or the apply starts a GPU node (or fails, if your GPU quota is too low), and delete its `labels` unless you need extra ones.
+
+Add to `eks/terraform.tfvars`, then run `terraform apply` in `eks/`:
 
 ```hcl
 gpu_node_groups = {
   gpu = {
     instance_types = ["g4dn.xlarge"]
-    capacity_type  = "ON_DEMAND"
-    min_size       = 0
-    desired_size   = 1
-    max_size       = 3
-    labels = {
-      "workload-type" = "gpu"
-    }
-    taints = [
-      {
-        key    = "nvidia.com/gpu"
-        value  = "present"
-        effect = "NO_SCHEDULE"
-      }
-    ]
+    # Optional, with their defaults:
+    # capacity_type = "ON_DEMAND"
+    # min_size      = 0
+    # desired_size  = 0
+    # max_size      = 2
   }
 }
 ```
 
-> **Warning:** GPU instances are expensive. Keep `desired_size = 0` when not running exercises and scale up only when needed:
-> ```bash
-> aws eks update-nodegroup-config \
->   --cluster-name "$CLUSTER_NAME" \
->   --nodegroup-name gpu \
->   --scaling-config desiredSize=1
-> ```
+The group starts with no nodes. A g4dn.xlarge left running costs about $449/month in eu-west-2 ($0.615/hour), so scale up only for an exercise, and back to 0 when you finish.
+
+### Check your GPU quota
+
+EC2's "Running On-Demand G and VT instances" quota starts at 0 vCPUs on many accounts, and each g4dn.xlarge needs 4. Check yours before scaling up:
+
+```bash
+# The quota's code and the AWS default value
+aws service-quotas list-aws-default-service-quotas --service-code ec2 --region "$AWS_REGION" \
+  --query "Quotas[?QuotaName=='Running On-Demand G and VT instances'].[QuotaCode,Value]" --output text
+
+# Your account's applied value. If this fails with NoSuchResourceException,
+# the default from the first command applies.
+aws service-quotas get-service-quota --service-code ec2 --quota-code <code from above> \
+  --region "$AWS_REGION" --query Quota.Value
+```
+
+If the value is below 4 vCPUs per node you want to run (8 for exercise 03, which uses two nodes), request an increase in the Service Quotas console. AWS may take a while to grant it.
+
+### Scaling the GPU group
+
+Terraform ignores `desired_size` once the group exists, so scale it with the AWS CLI:
+
+```bash
+aws eks update-nodegroup-config \
+  --cluster-name "$CLUSTER_NAME" \
+  --nodegroup-name gpu \
+  --scaling-config desiredSize=1
+
+# When you're done:
+aws eks update-nodegroup-config \
+  --cluster-name "$CLUSTER_NAME" \
+  --nodegroup-name gpu \
+  --scaling-config desiredSize=0
+```
+
+The EKS NVIDIA AMI includes the NVIDIA driver but not the NVIDIA Kubernetes device plugin ([EKS accelerated AMIs](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html)), so a new GPU node doesn't advertise `nvidia.com/gpu` until you install the plugin in exercise 01.
 
 ### GPU instance families
 

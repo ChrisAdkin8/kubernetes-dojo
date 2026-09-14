@@ -55,3 +55,31 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "ami_type" {
+  description = "EKS AMI type for the nodes (e.g. AL2023_x86_64_NVIDIA). Null lets EKS choose the default for the instance type."
+  type        = string
+  default     = null
+}
+
+variable "labels" {
+  description = "Kubernetes labels applied to every node in the group."
+  type        = map(string)
+  default     = {}
+}
+
+variable "taints" {
+  description = "Kubernetes taints applied to every node in the group. effect is NO_SCHEDULE, NO_EXECUTE or PREFER_NO_SCHEDULE."
+  type = list(object({
+    key    = string
+    value  = optional(string)
+    effect = string
+  }))
+  default = []
+}
+
+variable "iam_role_name" {
+  description = "Name of the node IAM role. Null uses \"<cluster_name>-node-group-role\"."
+  type        = string
+  default     = null
+}

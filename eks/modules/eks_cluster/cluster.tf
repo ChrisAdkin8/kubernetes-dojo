@@ -43,6 +43,19 @@ resource "aws_eks_cluster" "this" {
     bootstrap_cluster_creator_admin_permissions = true
   }
 
+  # STANDARD keeps the control plane on standard-support pricing ($0.10 per
+  # cluster-hour) instead of extended support ($0.60), which is the default:
+  # https://aws.amazon.com/blogs/containers/amazon-eks-extended-support-for-kubernetes-versions-pricing/
+  # When the version leaves standard support, EKS upgrades the cluster to the
+  # next minor version automatically:
+  # https://docs.aws.amazon.com/eks/latest/userguide/view-upgrade-policy.html
+  # The default version (1.36) leaves standard support on 2027-08-02. After
+  # that, set kubernetes_version to the version EKS moved the cluster to before
+  # the next apply, or Terraform asks for a downgrade, which EKS cannot do.
+  upgrade_policy {
+    support_type = "STANDARD"
+  }
+
   # Ship API server, audit, authenticator, controller-manager, and scheduler
   # logs to CloudWatch Logs for observability and compliance.
   enabled_cluster_log_types = [

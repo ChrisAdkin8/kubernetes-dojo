@@ -228,19 +228,24 @@ kubectl expose deployment web --port=80 --dry-run=client -o yaml > service.yaml
 
 ## Estimated Cost
 
-The default cluster configuration (2× t3.medium nodes, eu-west-2) costs approximately:
+The default cluster configuration (2× t3.medium nodes, eu-west-2, on-demand prices, 730 hours a month) costs approximately:
 
 | Resource | Monthly cost (approx.) |
 |---|---|
-| EKS control plane | $73 |
-| 2× t3.medium (on-demand) | $60 |
-| NAT Gateways (2×) | $65 |
-| EBS storage | ~$5 |
-| **Total** | **~$203/month** |
+| EKS control plane (standard support) | $73.00 |
+| 2× t3.medium (on-demand) | $68.91 |
+| NAT Gateways (2×) | $73.00 |
+| Public IPv4 addresses for the NAT gateways (2×) | $7.30 |
+| EBS gp3 root volumes (2× 50 GB) | $9.28 |
+| CloudWatch control-plane logs (ingestion) | measured in the EKS test run |
+| **Total** | **~$231/month plus logs** |
+
+Not included: NAT data processing ($0.05 per GB), load balancers you create in the exercises, GPU nodes (see [`gpu-ml/README.md`](gpu-ml/README.md)), and log storage. The control-plane log group `/aws/eks/<cluster>/cluster` never expires by default, so its storage keeps growing.
+
+Pinning `kubernetes_version` to a version past EKS standard support raises the control plane from $73 to $438 a month ($0.60 per cluster-hour, [EKS extended support pricing](https://aws.amazon.com/blogs/containers/amazon-eks-extended-support-for-kubernetes-versions-pricing/)).
 
 To reduce cost:
 - Use `node_capacity_type = "SPOT"` (up to 70% cheaper for nodes)
-- Reduce to one NAT gateway by setting `availability_zones = ["eu-west-2a"]` and one subnet pair
 - Destroy the cluster when not in use: `terraform destroy`
 
 ---
@@ -255,3 +260,9 @@ terraform destroy
 ```
 
 > **Before destroying:** delete any PersistentVolumeClaims you want to keep data from, as the StorageClass has `reclaimPolicy: Delete`.
+
+---
+
+## Licence
+
+Licensed under the Apache License, Version 2.0. See [`LICENSE`](LICENSE).

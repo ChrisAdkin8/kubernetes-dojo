@@ -2,9 +2,8 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: gp3-encrypted
-  annotations:
-    # Make this the default class so PVCs without a storageClassName get it.
-    storageclass.kubernetes.io/is-default-class: "true"
+  # Not the default class: the EKS cluster's aws-ebs-csi-driver add-on already
+  # creates one (ebs-csi-default-sc), and a cluster should have only one.
   labels:
     exercise: "07"
 provisioner: ebs.csi.aws.com

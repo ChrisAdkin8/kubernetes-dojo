@@ -5,7 +5,7 @@
 # access is required.
 
 resource "aws_iam_role" "node_group" {
-  name               = "${var.cluster_name}-node-group-role"
+  name               = coalesce(var.iam_role_name, "${var.cluster_name}-node-group-role")
   assume_role_policy = data.aws_iam_policy_document.node_assume_role.json
 
   tags = var.tags

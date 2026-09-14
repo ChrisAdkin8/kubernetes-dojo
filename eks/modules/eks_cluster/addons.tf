@@ -7,6 +7,12 @@ resource "aws_eks_addon" "vpc_cni" {
   addon_name                  = "vpc-cni"
   resolve_conflicts_on_update = "OVERWRITE"
 
+  # Turn on the VPC CNI's network policy agent, so NetworkPolicy objects are
+  # enforced (exercise 11).
+  configuration_values = jsonencode({
+    enableNetworkPolicy = "true"
+  })
+
   tags = var.tags
 }
 
@@ -34,6 +40,14 @@ resource "aws_eks_addon" "ebs_csi_driver" {
   addon_name                  = "aws-ebs-csi-driver"
   service_account_role_arn    = aws_iam_role.ebs_csi.arn
   resolve_conflicts_on_update = "OVERWRITE"
+
+  # Create a default StorageClass, so PVCs that name no class (exercise 04)
+  # get a volume. EKS no longer marks gp2 as the default.
+  configuration_values = jsonencode({
+    defaultStorageClass = {
+      enabled = true
+    }
+  })
 
   tags = var.tags
 

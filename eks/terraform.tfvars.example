@@ -10,7 +10,7 @@ region = "eu-west-2"
 # Uncomment and edit any value you want to change from the default.
 
 # cluster_name       = "k8s-dojo"
-# kubernetes_version = "1.31"
+# kubernetes_version = "1.36"
 
 # vpc_cidr              = "10.0.0.0/16"
 # availability_zones    = ["eu-west-2a", "eu-west-2b"]
@@ -23,6 +23,14 @@ region = "eu-west-2"
 # node_max_count      = 4
 # node_disk_size_gb   = 50
 # node_capacity_type  = "ON_DEMAND"
+
+# GPU node group for the gpu-ml exercises (see gpu-ml/README.md). It starts
+# with no nodes; labels and the nvidia.com/gpu taint are set by default.
+# gpu_node_groups = {
+#   gpu = {
+#     instance_types = ["g4dn.xlarge"]
+#   }
+# }
 
 # Restrict API server access to your own IP.
 # cluster_endpoint_public_access_cidrs = ["YOUR.IP.ADDRESS/32"]
