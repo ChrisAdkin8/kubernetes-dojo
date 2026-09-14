@@ -40,7 +40,7 @@ Any pod that wants to run on a GPU node must include a matching `toleration`. Th
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir="$(git rev-parse --show-toplevel)/eks" output -raw cluster_name)
 export AWS_REGION=eu-west-2
 
 # Confirm kubeconfig is pointed at the right cluster
@@ -90,35 +90,43 @@ Allocatable:
   nvidia.com/gpu:  1
 ```
 
-If `nvidia.com/gpu` does not appear, the NVIDIA Device Plugin is not running. Proceed to Step 3 to diagnose.
+On a new GPU node, `nvidia.com/gpu` doesn't appear yet. The EKS NVIDIA AMI includes the driver but not the NVIDIA Device Plugin, so nothing has advertised the GPU to the kubelet. Step 3 installs the plugin; run these commands again afterwards and you'll see the output above.
 
 ---
 
-## Step 3 — Inspect the NVIDIA Device Plugin DaemonSet
+## Step 3 — Install and inspect the NVIDIA Device Plugin DaemonSet
+
+Install the device plugin with Helm, pinned to a chart version. `upgrade --install` is safe to re-run: it installs the release if it's missing and leaves it as it is otherwise.
 
 ```bash
-# Confirm the device plugin pods are running on GPU nodes
-kubectl get pods -n kube-system -l name=nvidia-device-plugin-ds -o wide
-
-# If not present, install via Helm
 helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
 helm repo update
 helm upgrade --install nvidia-device-plugin nvdp/nvidia-device-plugin \
+  --version 0.20.0 \
   --namespace kube-system \
-  --set tolerations[0].key=nvidia.com/gpu \
-  --set tolerations[0].operator=Exists \
-  --set tolerations[0].effect=NoSchedule
+  --set 'tolerations[0].key=nvidia.com/gpu' \
+  --set 'tolerations[0].operator=Exists' \
+  --set 'tolerations[0].effect=NoSchedule'
+```
+
+The chart names the DaemonSet after the release (`nvidia-device-plugin`). Its default node affinity only schedules it on nodes labelled `nvidia.com/gpu.present=true` (or with Node Feature Discovery's NVIDIA labels), and the EKS Terraform configuration puts that label on every GPU node. The toleration lets it run despite the GPU taint.
+
+Confirm a device plugin pod is running on each GPU node:
+
+```bash
+kubectl -n kube-system rollout status daemonset/nvidia-device-plugin --timeout=180s
+kubectl get pods -n kube-system -l app.kubernetes.io/name=nvidia-device-plugin -o wide
 ```
 
 Check device plugin logs if `nvidia.com/gpu` still does not appear:
 
 ```bash
-PLUGIN_POD=$(kubectl get pods -n kube-system -l name=nvidia-device-plugin-ds \
+PLUGIN_POD=$(kubectl get pods -n kube-system -l app.kubernetes.io/name=nvidia-device-plugin \
   -o jsonpath='{.items[0].metadata.name}')
 kubectl logs -n kube-system "$PLUGIN_POD"
 ```
 
-Common failure: the plugin pod cannot start because it lacks a toleration for the GPU node taint.
+Common failures: no plugin pod at all, because the node lacks the `nvidia.com/gpu.present=true` label the affinity needs (`kubectl get node "$GPU_NODE" --show-labels`); or a pod stuck `Pending`, because it lacks a toleration for the GPU node taint.
 
 ---
 
@@ -173,7 +181,7 @@ kubectl delete pod nvidia-smi --ignore-not-found
 <summary>Answers</summary>
 
 1. The resource does not appear at all — the node is treated as a CPU-only node by the scheduler and no GPU-requesting pod can be placed on it.
-2. Check whether the NVIDIA Device Plugin DaemonSet has a pod running on that node (`kubectl get pods -n kube-system -l name=nvidia-device-plugin-ds -o wide`). If the pod is not present or is in `CrashLoopBackOff`, inspect its logs for driver or permission errors.
+2. Check whether the NVIDIA Device Plugin DaemonSet has a pod running on that node (`kubectl get pods -n kube-system -l app.kubernetes.io/name=nvidia-device-plugin -o wide`). If the pod is not present or is in `CrashLoopBackOff`, inspect its logs for driver or permission errors.
 3. To prevent general-purpose workloads from consuming GPU capacity unintentionally. Without the taint, any pod without a GPU request could be scheduled onto a GPU node, wasting the expensive resource.
 4. A `tolerations` block matching the GPU node taint (`nvidia.com/gpu=present:NoSchedule`). Without it the scheduler skips all GPU nodes.
 5. Run `nvidia-smi` inside the container — either via `kubectl exec` into a running pod or by launching a one-shot pod that executes `nvidia-smi` and prints its output to logs.

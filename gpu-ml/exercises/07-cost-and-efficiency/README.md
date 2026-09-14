@@ -63,7 +63,7 @@ hard:
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir="$(git rev-parse --show-toplevel)/eks" output -raw cluster_name)
 
 GPU_NODE=$(kubectl get nodes -l workload-type=gpu -o jsonpath='{.items[0].metadata.name}')
 echo "GPU node: $GPU_NODE"
@@ -74,26 +74,21 @@ kubectl describe node "$GPU_NODE" | grep "nvidia.com/gpu"
 
 ## Step 1 — Configure GPU time-slicing
 
-Time-slicing is configured via a ConfigMap that the NVIDIA Device Plugin reads:
+Time-slicing is configured through a ConfigMap that the NVIDIA Device Plugin reads. The device plugin Helm chart from exercise 01 supports this directly: `config.name` names an existing ConfigMap in the release namespace, and `config.default` names the key in it to use. The chart then adds a config-manager container that loads the config into the plugin.
 
 ```bash
 kubectl apply -f manifests/time-slicing-configmap.yaml
 
-# Patch the device plugin DaemonSet to reference the ConfigMap
-kubectl patch daemonset nvidia-device-plugin-daemonset -n kube-system \
-  --type=json \
-  -p='[
-    {"op": "add", "path": "/spec/template/spec/volumes/-",
-     "value": {"name": "config", "configMap": {"name": "device-plugin-config"}}},
-    {"op": "add", "path": "/spec/template/spec/containers/0/volumeMounts/-",
-     "value": {"name": "config", "mountPath": "/etc/nvidia/config"}},
-    {"op": "add", "path": "/spec/template/spec/containers/0/env/-",
-     "value": {"name": "CONFIG_FILE", "value": "/etc/nvidia/config/config.yaml"}}
-  ]'
+# Point the device plugin at the ConfigMap. --version keeps the chart pinned
+# (Helm doesn't carry it over), and --reuse-values keeps exercise 01's settings.
+helm upgrade nvidia-device-plugin nvdp/nvidia-device-plugin \
+  --version 0.20.0 \
+  --namespace kube-system \
+  --reuse-values \
+  --set config.name=device-plugin-config \
+  --set config.default=config.yaml
 
-# Restart the device plugin to apply the new config
-kubectl rollout restart daemonset nvidia-device-plugin-daemonset -n kube-system
-kubectl rollout status daemonset nvidia-device-plugin-daemonset -n kube-system
+kubectl -n kube-system rollout status daemonset/nvidia-device-plugin --timeout=180s
 ```
 
 ---
@@ -198,9 +193,15 @@ kubectl delete pods -n ml-team-a --all --ignore-not-found
 kubectl delete namespace ml-team-a --ignore-not-found
 helm uninstall aws-node-termination-handler -n kube-system --ignore-not-found
 
-# Revert device plugin to default (remove time-slicing config)
+# Revert the device plugin to one GPU per physical GPU (remove the time-slicing config)
+helm upgrade nvidia-device-plugin nvdp/nvidia-device-plugin \
+  --version 0.20.0 \
+  --namespace kube-system \
+  --reuse-values \
+  --set config.name= \
+  --set config.default=
+kubectl -n kube-system rollout status daemonset/nvidia-device-plugin --timeout=180s
 kubectl delete configmap device-plugin-config -n kube-system --ignore-not-found
-kubectl rollout restart daemonset nvidia-device-plugin-daemonset -n kube-system
 ```
 
 ---

@@ -1,3 +1,98 @@
+# Two-node PyTorch DistributedDataParallel (DDP) training as an Indexed Job.
+#
+# Three objects:
+#   1. A headless Service that gives each worker pod a stable DNS name
+#      (distributed-training-0.distributed-training, ...-1...).
+#   2. A ConfigMap holding the training script.
+#   3. The Indexed Job: one pod per node, each running torchrun, with
+#      pod 0 (rank 0) acting as the rendezvous master.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: distributed-training
+spec:
+  clusterIP: None
+  selector:
+    job-name: distributed-training
+  # Publish DNS records as soon as the pods have IPs, so rank 1 can find
+  # rank 0 without waiting for it to be Ready.
+  publishNotReadyAddresses: true
+  ports:
+    - name: rendezvous
+      port: 29500
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: distributed-training-script
+data:
+  train.py: |
+    import os
+
+    import torch
+    import torch.distributed as dist
+    from torch.nn.parallel import DistributedDataParallel as DDP
+    from torch.utils.data import DataLoader, TensorDataset
+    from torch.utils.data.distributed import DistributedSampler
+
+
+    def main():
+        # torchrun sets RANK, WORLD_SIZE, LOCAL_RANK, MASTER_ADDR and MASTER_PORT.
+        use_cuda = torch.cuda.is_available()
+        backend = "nccl" if use_cuda else "gloo"
+        dist.init_process_group(backend=backend)
+        rank = dist.get_rank()
+        world_size = dist.get_world_size()
+        local_rank = int(os.environ["LOCAL_RANK"])
+        if use_cuda:
+            device = torch.device(f"cuda:{local_rank}")
+            torch.cuda.set_device(device)
+        else:
+            device = torch.device("cpu")
+        print(f"backend={backend} rank={rank} world_size={world_size} device={device}", flush=True)
+
+        # A seeded synthetic regression dataset, identical on every rank.
+        # DistributedSampler gives each rank a different half of it.
+        g = torch.Generator().manual_seed(0)
+        x = torch.randn(4096, 10, generator=g)
+        true_w = torch.randn(10, 1, generator=g)
+        y = x @ true_w + 0.1 * torch.randn(4096, 1, generator=g)
+        dataset = TensorDataset(x, y)
+        sampler = DistributedSampler(dataset, num_replicas=world_size, rank=rank, shuffle=True, seed=0)
+        loader = DataLoader(dataset, batch_size=64, sampler=sampler)
+
+        # DDP broadcasts rank 0's initial weights, then all-reduces gradients
+        # during every backward() so the replicas stay identical.
+        model = DDP(torch.nn.Linear(10, 1).to(device), device_ids=[local_rank] if use_cuda else None)
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
+        loss_fn = torch.nn.MSELoss()
+
+        for epoch in range(1, 6):
+            sampler.set_epoch(epoch)
+            total, batches = 0.0, 0
+            for xb, yb in loader:
+                xb, yb = xb.to(device), yb.to(device)
+                optimizer.zero_grad()
+                loss = loss_fn(model(xb), yb)
+                loss.backward()
+                optimizer.step()
+                total += loss.item()
+                batches += 1
+            # Average the epoch loss over all ranks, so rank 0 reports the global figure.
+            epoch_loss = torch.tensor([total / batches], device=device)
+            dist.all_reduce(epoch_loss, op=dist.ReduceOp.SUM)
+            if rank == 0:
+                print(f"epoch {epoch} loss {epoch_loss.item() / world_size:.4f}", flush=True)
+
+        dist.destroy_process_group()
+
+
+    if __name__ == "__main__":
+        main()
+
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -7,8 +102,14 @@ spec:
   parallelism: 2
   completionMode: Indexed
   backoffLimit: 2
+  # Ends the Job if it runs this long, e.g. when a rank waits at the
+  # rendezvous for a worker that never starts. Includes the image pull.
+  activeDeadlineSeconds: 1200
   template:
     spec:
+      # With the headless Service above, pod N is reachable as
+      # distributed-training-N.distributed-training.
+      subdomain: distributed-training
       restartPolicy: OnFailure
       tolerations:
         - key: nvidia.com/gpu
@@ -19,36 +120,30 @@ spec:
       containers:
         - name: trainer
           image: pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
-          env:
-            - name: WORLD_SIZE
-              value: "2"
-            - name: RANK
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
-          command:
-            - python
-            - -c
+          # Kubernetes sets JOB_COMPLETION_INDEX (0 or 1) in each Indexed Job
+          # pod; torchrun uses it as the node rank and sets RANK/WORLD_SIZE.
+          command: ["/bin/sh", "-c"]
+          args:
             - |
-              import os, torch
-              rank = int(os.environ.get("RANK", 0))
-              world_size = int(os.environ.get("WORLD_SIZE", 1))
-              device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-              # Simulate per-rank data shard processing
-              total_samples = 1000
-              shard_size = total_samples // world_size
-              start = rank * shard_size
-              end = start + shard_size
-              print(f"[rank {rank} / world_size {world_size}] processing shard {rank} of {world_size} (samples {start}-{end}) on {device}")
-              x = torch.randn(shard_size, 10, device=device)
-              y = torch.randn(shard_size, 1, device=device)
-              model = torch.nn.Linear(10, 1).to(device)
-              for epoch in range(1, 6):
-                  loss = torch.nn.functional.mse_loss(model(x), y)
-                  print(f"[rank {rank}] epoch {epoch}/5 — loss: {loss.item():.4f}")
-              print(f"[rank {rank}] shard complete.")
+              exec torchrun \
+                --nnodes=2 \
+                --nproc-per-node=1 \
+                --node-rank="$JOB_COMPLETION_INDEX" \
+                --master-addr=distributed-training-0.distributed-training \
+                --master-port=29500 \
+                /scripts/train.py
+          ports:
+            - containerPort: 29500
+              name: rendezvous
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
           resources:
             requests:
               nvidia.com/gpu: "1"
             limits:
               nvidia.com/gpu: "1"
+      volumes:
+        - name: script
+          configMap:
+            name: distributed-training-script

@@ -49,7 +49,7 @@ Requesting `nvidia.com/gpu: 1` on a T4 node gives the pod access to the full 16 
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir="$(git rev-parse --show-toplevel)/eks" output -raw cluster_name)
 
 GPU_NODE=$(kubectl get nodes -l workload-type=gpu -o jsonpath='{.items[0].metadata.name}')
 echo "GPU node: $GPU_NODE"

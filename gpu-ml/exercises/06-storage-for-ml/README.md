@@ -46,7 +46,7 @@ The EFS CSI driver (`efs.csi.aws.com`) is the Kubernetes integration for Amazon 
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir="$(git rev-parse --show-toplevel)/eks" output -raw cluster_name)
 export AWS_REGION=eu-west-2
 
 # Confirm EFS CSI driver is installed

@@ -31,7 +31,7 @@ EKS Cluster
 Configure kubeconfig from the EKS cluster before starting any exercise:
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir="$(git rev-parse --show-toplevel)/eks" output -raw cluster_name)
 export AWS_REGION=eu-west-2
 aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
 kubectl get nodes
@@ -140,9 +140,9 @@ Answer without looking at the exercises or AWS console:
 
 1. `nvidia.com/gpu` — set in both `resources.requests` and `resources.limits`.
 2. GPU resources cannot be overcommitted. Kubernetes guarantees exclusive allocation per pod; partial or fractional GPU requests are not natively supported without time-slicing or MIG configured on the node.
-3. The NVIDIA Device Plugin DaemonSet (`nvidia-device-plugin-daemonset`) — it discovers GPUs on each node and registers `nvidia.com/gpu` capacity with the kubelet.
+3. The NVIDIA Device Plugin DaemonSet (`nvidia-device-plugin` when installed with Helm as in exercise 01; the chart names it after the release) — it discovers GPUs on each node and registers `nvidia.com/gpu` capacity with the kubelet.
 4. `spec.parallelism` (pods running concurrently) and `spec.completions` set to the total work items, with `spec.completionMode: Indexed` so each pod receives a unique `JOB_COMPLETION_INDEX` to partition its share of the work.
-5. `dcgm_gpu_utilization` (SM occupancy, %) vs `dcgm_fb_used` / `dcgm_fb_free` (framebuffer memory usage). High SM utilisation with modest memory usage = compute-bound. High memory usage with low SM = memory-bound or data-loading bottleneck.
+5. Compare `DCGM_FI_DEV_GPU_UTIL` (percent of time a kernel was running) with `DCGM_FI_DEV_MEM_COPY_UTIL` (percent of time device memory was being read or written). High kernel activity with modest memory activity suggests compute-bound; high memory activity suggests memory-bandwidth-bound; both low during training suggests a data-loading bottleneck. `DCGM_FI_DEV_FB_USED` / `DCGM_FI_DEV_FB_FREE` show how much vRAM is in use, which is about capacity, not whether the GPU is memory-bound.
 6. A `tolerations` entry for the GPU node taint (`nvidia.com/gpu: NoSchedule`). Without it the scheduler will not place the pod on any tainted GPU node.
 7. `ReadWriteMany` (RWX). EFS via the EFS CSI driver provides RWX; standard gp3 EBS does not.
 

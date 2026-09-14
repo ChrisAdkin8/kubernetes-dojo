@@ -17,26 +17,28 @@ The NVIDIA Data Centre GPU Manager (DCGM) Exporter is a DaemonSet that runs on G
 
 ### Key metrics
 
+DCGM Exporter names each metric after its DCGM field ID. These are all in the counters list the Helm chart installs by default (chart 4.8.3):
+
 | Metric | Unit | What it means |
 |---|---|---|
-| `dcgm_gpu_utilization` | % | Streaming Multiprocessor (SM) occupancy — compute activity |
-| `dcgm_mem_copy_utilization` | % | Memory controller activity — data movement between CPU and GPU |
-| `dcgm_fb_used` | MiB | GPU framebuffer (vRAM) in use |
-| `dcgm_fb_free` | MiB | GPU framebuffer (vRAM) free |
-| `dcgm_gpu_temp` | °C | GPU die temperature |
-| `dcgm_power_usage` | W | Current power draw |
-| `dcgm_pcie_tx_throughput` | KB/s | PCIe host-to-device bandwidth |
-| `dcgm_pcie_rx_throughput` | KB/s | PCIe device-to-host bandwidth |
-| `dcgm_xgmi_l0_tx_throughput` | KB/s | NVLink bandwidth (multi-GPU nodes) |
+| `DCGM_FI_DEV_GPU_UTIL` | % | Percent of time one or more kernels was running on the GPU |
+| `DCGM_FI_DEV_MEM_COPY_UTIL` | % | Percent of time device memory (vRAM) was being read or written |
+| `DCGM_FI_DEV_FB_USED` | MiB | GPU framebuffer (vRAM) in use |
+| `DCGM_FI_DEV_FB_FREE` | MiB | GPU framebuffer (vRAM) free |
+| `DCGM_FI_DEV_GPU_TEMP` | °C | GPU temperature |
+| `DCGM_FI_DEV_POWER_USAGE` | W | Current power draw |
+| `DCGM_FI_PROF_PCIE_TX_BYTES` | bytes/s | PCIe transmit rate, including protocol headers (a profiling metric) |
+| `DCGM_FI_PROF_PCIE_RX_BYTES` | bytes/s | PCIe receive rate, including protocol headers (a profiling metric) |
+| `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` | counter | NVLink bandwidth across all lanes; only meaningful on multi-GPU nodes with NVLink, not g4dn |
 
 ### Reading GPU utilisation
 
-`dcgm_gpu_utilization` does not measure the fraction of CUDA cores busy — it measures the percentage of time at least one warp was active on any SM over the sampling window. Common patterns:
+`DCGM_FI_DEV_GPU_UTIL` does not measure the fraction of CUDA cores busy. It is NVML's GPU utilisation: the percentage of the sample period during which one or more kernels was executing ([NVML `nvmlUtilization_t`](https://github.com/NVIDIA/go-nvml/blob/e5441f354b4c7dea74ad35ebe22b774bb5c36ec5/gen/nvml/nvml.h#L245-L249)). A single small kernel running all the time reads 100%. `DCGM_FI_DEV_MEM_COPY_UTIL` is the matching memory figure: the percentage of time device memory was being read or written. It measures vRAM bandwidth activity, not how much vRAM is in use (that's `DCGM_FI_DEV_FB_USED`). Common patterns:
 
 | Observation | Interpretation |
 |---|---|
-| SM util high, memory util low | Compute-bound — model is math-limited |
-| SM util low, memory util high | Memory-bandwidth-bound — increase batch size |
+| `GPU_UTIL` high, `MEM_COPY_UTIL` low | Compute-bound — model is math-limited |
+| `GPU_UTIL` low, `MEM_COPY_UTIL` high | Memory-bandwidth-bound — increase batch size |
 | Both low during training | Data loading bottleneck — workers starving the GPU |
 | Temperature > 85°C | Thermal throttling risk — check cooling and power cap |
 
@@ -45,7 +47,7 @@ The NVIDIA Data Centre GPU Manager (DCGM) Exporter is a DaemonSet that runs on G
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir="$(git rev-parse --show-toplevel)/eks" output -raw cluster_name)
 
 # Confirm Prometheus is installed (or install it)
 kubectl get svc -n monitoring | grep prometheus
@@ -66,14 +68,19 @@ helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stac
 helm repo add gpu-helm-charts https://nvidia.github.io/dcgm-exporter/helm-charts
 helm repo update
 
+# serviceMonitor.additionalLabels.release must match the kube-prometheus-stack
+# release name (kube-prometheus above): by default its Prometheus only picks
+# up ServiceMonitors with that label.
 helm upgrade --install dcgm-exporter gpu-helm-charts/dcgm-exporter \
+  --version 4.8.3 \
   --namespace monitoring \
-  --set tolerations[0].key=nvidia.com/gpu \
-  --set tolerations[0].operator=Exists \
-  --set tolerations[0].effect=NoSchedule \
+  --set 'tolerations[0].key=nvidia.com/gpu' \
+  --set 'tolerations[0].operator=Exists' \
+  --set 'tolerations[0].effect=NoSchedule' \
   --set nodeSelector."workload-type"=gpu \
   --set serviceMonitor.enabled=true \
-  --set serviceMonitor.interval=15s
+  --set serviceMonitor.interval=15s \
+  --set serviceMonitor.additionalLabels.release=kube-prometheus
 
 # Confirm DaemonSet pods are running on GPU nodes
 kubectl get pods -n monitoring -l app.kubernetes.io/name=dcgm-exporter -o wide
@@ -88,13 +95,13 @@ DCGM_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=dcgm-exporte
   -o jsonpath='{.items[0].metadata.name}')
 
 # Fetch raw metrics from the exporter
-kubectl exec -n monitoring "$DCGM_POD" -- curl -s http://localhost:9400/metrics | grep "^dcgm_gpu_utilization"
+kubectl exec -n monitoring "$DCGM_POD" -- curl -s http://localhost:9400/metrics | grep "^DCGM_FI_DEV_GPU_UTIL{"
 ```
 
 Expected output (one line per GPU):
 
 ```
-dcgm_gpu_utilization{gpu="0",UUID="GPU-...",modelName="Tesla T4",...} 0
+DCGM_FI_DEV_GPU_UTIL{gpu="0",UUID="GPU-...",modelName="Tesla T4",...} 0
 ```
 
 A value of `0` is expected at idle. Run a GPU workload (e.g. the training Job from exercise 03) and re-query to see utilisation rise.
@@ -110,11 +117,13 @@ PF_PID=$!
 sleep 2
 
 # Query GPU utilisation for all GPUs
-curl -s "http://localhost:9090/api/v1/query?query=dcgm_gpu_utilization" | \
+curl -sG http://localhost:9090/api/v1/query --data-urlencode 'query=DCGM_FI_DEV_GPU_UTIL' | \
   jq '.data.result[] | {gpu: .metric.gpu, node: .metric.Hostname, value: .value[1]}'
 
-# Query GPU memory usage as a percentage
-curl -s "http://localhost:9090/api/v1/query?query=dcgm_fb_used/(dcgm_fb_used+dcgm_fb_free)*100" | \
+# Query GPU memory usage as a percentage. --data-urlencode matters here:
+# an unencoded + in a URL is read as a space.
+curl -sG http://localhost:9090/api/v1/query \
+  --data-urlencode 'query=DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 100' | \
   jq '.data.result[] | {gpu: .metric.gpu, memory_pct: .value[1]}'
 
 kill $PF_PID
@@ -128,19 +137,19 @@ Save these for dashboards or alert rules:
 
 ```promql
 # Average GPU utilisation across all GPU nodes (last 5 minutes)
-avg_over_time(dcgm_gpu_utilization[5m])
+avg_over_time(DCGM_FI_DEV_GPU_UTIL[5m])
 
 # GPU memory saturation — alert when > 90%
-dcgm_fb_used / (dcgm_fb_used + dcgm_fb_free) > 0.90
+DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) > 0.90
 
 # GPUs running hot — alert when temperature exceeds 85°C
-dcgm_gpu_temp > 85
+DCGM_FI_DEV_GPU_TEMP > 85
 
 # GPU power draw — useful for cost attribution
-sum by (Hostname) (dcgm_power_usage)
+sum by (Hostname) (DCGM_FI_DEV_POWER_USAGE)
 
 # Detect idle GPUs (allocated but under-utilised)
-dcgm_gpu_utilization < 5
+DCGM_FI_DEV_GPU_UTIL < 5
 ```
 
 ---
@@ -155,7 +164,7 @@ kubectl apply -f ../03-distributed-training/manifests/single-gpu-job.yaml
 for i in $(seq 1 12); do
   kubectl exec -n monitoring "$DCGM_POD" -- \
     curl -s http://localhost:9400/metrics | \
-    grep "^dcgm_gpu_utilization" | awk '{print "GPU util:", $NF, "%"}'
+    grep "^DCGM_FI_DEV_GPU_UTIL{" | awk '{print "GPU util:", $NF, "%"}'
   sleep 5
 done
 
@@ -163,7 +172,7 @@ done
 kubectl delete job single-gpu-training --ignore-not-found
 ```
 
-You should see `dcgm_gpu_utilization` rise while the job runs and drop to 0 when it completes.
+You should see `DCGM_FI_DEV_GPU_UTIL` rise while the job runs and drop to 0 when it completes.
 
 ---
 
@@ -178,19 +187,19 @@ helm uninstall dcgm-exporter -n monitoring
 
 ## Knowledge Check
 
-1. What does `dcgm_gpu_utilization = 100` mean? Does it mean all CUDA cores are busy?
-2. A training job reports loss decreasing but `dcgm_gpu_utilization` stays below 20%. What is the most likely cause?
-3. `dcgm_fb_used` is at 15.8 GB on a 16 GB T4. The model server is still responding. Should you alert?
+1. What does `DCGM_FI_DEV_GPU_UTIL = 100` mean? Does it mean all CUDA cores are busy?
+2. A training job reports loss decreasing but `DCGM_FI_DEV_GPU_UTIL` stays below 20%. What is the most likely cause?
+3. `DCGM_FI_DEV_FB_USED` is at 15.8 GB on a 16 GB T4. The model server is still responding. Should you alert?
 4. How would you attribute GPU power costs to individual teams using PromQL labels?
 5. A GPU node's temperature hits 87°C during training. What does the GPU do automatically, and what should you investigate?
 
 <details>
 <summary>Answers</summary>
 
-1. `dcgm_gpu_utilization = 100` means the GPU had at least one active warp running on at least one SM during every sampling interval — it does not mean all CUDA cores were in use simultaneously. A GPU with 5,000 cores could show 100% utilisation while using only 500 cores if a warp was consistently active. It is an activity metric, not a saturation metric.
+1. `DCGM_FI_DEV_GPU_UTIL = 100` means one or more kernels was executing on the GPU for the whole sample period — it does not mean all CUDA cores were in use. A single small kernel that keeps a fraction of the SMs busy all the time also reads 100%. It is an activity metric, not a saturation metric. To see how much of the GPU is busy, you need a profiling field such as `DCGM_FI_PROF_SM_ACTIVE`, which the chart's default counters list leaves commented out, so it needs a custom counters file.
 2. The GPU is starved of data — the data loading pipeline (CPU preprocessing, disk I/O, host-to-device transfers) cannot feed batches fast enough. Increase `num_workers` in the DataLoader, use pinned memory (`pin_memory=True`), or prefetch data to the GPU in advance.
 3. Yes — at 98.75% vRAM usage the risk of OOM on the next large allocation (e.g. a batch with more tokens than expected) is high. Alert at 90% to give time to respond before the process crashes.
-4. Add a label to GPU nodes identifying the team (e.g. `team=nlp`) and use `sum by (team) (dcgm_power_usage * on(instance) group_left(team) kube_node_labels)` to aggregate power draw per team across all their GPU nodes.
-5. The GPU automatically reduces its clock speed (thermal throttling) to stay within its thermal envelope. Investigate: airflow and cooling in the data centre rack, instance type (some instance families have better cooling), whether the training batch size can be reduced to lower sustained power draw, and whether `dcgm_power_usage` is approaching the GPU's TDP limit.
+4. Add a label to GPU nodes identifying the team (e.g. `team=nlp`) and use `sum by (team) (DCGM_FI_DEV_POWER_USAGE * on(instance) group_left(team) kube_node_labels)` to aggregate power draw per team across all their GPU nodes.
+5. The GPU automatically reduces its clock speed (thermal throttling) to stay within its thermal envelope. Investigate: airflow and cooling in the data centre rack, instance type (some instance families have better cooling), whether the training batch size can be reduced to lower sustained power draw, and whether `DCGM_FI_DEV_POWER_USAGE` is approaching the GPU's TDP limit.
 
 </details>
