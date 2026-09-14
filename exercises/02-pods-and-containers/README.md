@@ -173,7 +173,7 @@ tail: can't open '/var/log/access.log': No such file or directory
 tail: no files
 ```
 
-**Root cause:** `busybox:1.36` is a minimal image — `/var/log/` does not exist. The `touch` command fails, the shell exits non-zero, and Kubernetes restarts the container in a loop.
+**Root cause:** `busybox:1.36` is a minimal image — `/var/log/` does not exist. `touch` can't create the file, then `tail` can't open it and exits with an error, which ends the shell with a non-zero exit code. Kubernetes restarts the container, and it fails the same way every time.
 
 ### 6.4 — Fix the manifest
 

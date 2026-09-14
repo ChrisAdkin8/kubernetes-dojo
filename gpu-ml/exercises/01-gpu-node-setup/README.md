@@ -67,8 +67,11 @@ aws eks update-nodegroup-config \
   --cluster-name "$CLUSTER_NAME" \
   --nodegroup-name gpu \
   --scaling-config desiredSize=1
-# Wait for node to become Ready (~3 minutes)
-kubectl wait --for=condition=Ready node -l workload-type=gpu --timeout=300s
+# Wait for the node to join and become Ready (~3 minutes). kubectl wait can't
+# be used here: it fails at once while no GPU node exists yet.
+until [ "$(kubectl get nodes -l workload-type=gpu --no-headers 2>/dev/null | awk '$2=="Ready"{n++} END{print n+0}')" -ge 1 ]; do
+  sleep 15
+done
 ```
 
 ---

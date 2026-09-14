@@ -70,10 +70,12 @@ EC2's "Running On-Demand G and VT instances" quota starts at 0 vCPUs on many acc
 # The quota's code and the AWS default value
 aws service-quotas list-aws-default-service-quotas --service-code ec2 --region "$AWS_REGION" \
   --query "Quotas[?QuotaName=='Running On-Demand G and VT instances'].[QuotaCode,Value]" --output text
+QUOTA_CODE=$(aws service-quotas list-aws-default-service-quotas --service-code ec2 --region "$AWS_REGION" \
+  --query "Quotas[?QuotaName=='Running On-Demand G and VT instances'].QuotaCode" --output text)
 
 # Your account's applied value. If this fails with NoSuchResourceException,
 # the default from the first command applies.
-aws service-quotas get-service-quota --service-code ec2 --quota-code <code from above> \
+aws service-quotas get-service-quota --service-code ec2 --quota-code "$QUOTA_CODE" \
   --region "$AWS_REGION" --query Quota.Value
 ```
 

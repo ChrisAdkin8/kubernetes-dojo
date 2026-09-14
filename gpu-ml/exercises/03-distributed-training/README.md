@@ -112,7 +112,11 @@ aws eks update-nodegroup-config \
   --cluster-name "$CLUSTER_NAME" \
   --nodegroup-name gpu \
   --scaling-config desiredSize=2
-kubectl wait --for=condition=Ready node -l workload-type=gpu --timeout=600s
+# Wait until two GPU nodes are Ready (kubectl wait would return as soon as
+# one existing node is Ready)
+until [ "$(kubectl get nodes -l workload-type=gpu --no-headers 2>/dev/null | awk '$2=="Ready"{n++} END{print n+0}')" -ge 2 ]; do
+  sleep 15
+done
 kubectl get nodes -l workload-type=gpu
 ```
 
@@ -176,7 +180,7 @@ kubectl get pods -l job-name=distributed-training -w
 
 Rank 1 exits with an error straight away, and the kubelet restarts it (`restartPolicy: OnFailure`). Each restart counts towards `backoffLimit: 2`, so within about half a minute the Job controller marks the Job failed with `BackoffLimitExceeded` and deletes both pods. Rank 0 never trained: it was waiting at the rendezvous for rank 1 the whole time. In DDP, one worker's failure stops the whole job.
 
-A worker that never starts at all is different, for example one stuck `Pending` because there's no second GPU node. Nothing fails, so nothing counts towards `backoffLimit`: rank 0 waits at the rendezvous until torchrun gives up (after 10 minutes by default with `--master-addr`), exits and is restarted to wait again, until `activeDeadlineSeconds: 1200` ends the Job with `DeadlineExceeded`. That's the hang knowledge-check answer 3 describes.
+A worker that never starts at all is different, for example one stuck `Pending` because there's no second GPU node. Rank 0 waits at the rendezvous until torchrun gives up (after 10 minutes by default with `--master-addr`). That timeout is a failure, so rank 0 is restarted and it counts once towards `backoffLimit: 2`, but before rank 0 can fail twice more, `activeDeadlineSeconds: 1200` ends the Job with `DeadlineExceeded`. That's the hang knowledge-check answer 3 describes.
 
 ```bash
 kubectl describe job distributed-training | grep -E "Failed|backoffLimit|DeadlineExceeded|BackoffLimitExceeded"

@@ -39,7 +39,7 @@ aws eks describe-addon \
   --addon-name vpc-cni \
   --query addon.configurationValues \
   --output text \
-  --region eu-west-2
+  --region "${AWS_REGION:-eu-west-2}"
 # Expected: {"enableNetworkPolicy":"true"}
 ```
 

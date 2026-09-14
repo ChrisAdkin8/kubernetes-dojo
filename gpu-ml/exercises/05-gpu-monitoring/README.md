@@ -29,7 +29,7 @@ DCGM Exporter names each metric after its DCGM field ID. These are all in the co
 | `DCGM_FI_DEV_POWER_USAGE` | W | Current power draw |
 | `DCGM_FI_PROF_PCIE_TX_BYTES` | bytes/s | PCIe transmit rate, including protocol headers (a profiling metric) |
 | `DCGM_FI_PROF_PCIE_RX_BYTES` | bytes/s | PCIe receive rate, including protocol headers (a profiling metric) |
-| `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` | counter | NVLink bandwidth across all lanes; only meaningful on multi-GPU nodes with NVLink, not g4dn |
+| `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` | – | NVLink bandwidth across all lanes; only meaningful on multi-GPU nodes with NVLink, not g4dn |
 
 ### Reading GPU utilisation
 
