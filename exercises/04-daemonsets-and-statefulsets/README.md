@@ -57,6 +57,12 @@ StatefulSet "web" + headless Service "web"
 
 ---
 
+## Prerequisites
+
+The StatefulSet's PersistentVolumeClaims name no StorageClass, so the cluster needs a default one. Check that `kubectl get storageclass` shows exactly one class marked `(default)`. On the EKS cluster from `eks/`, that's `ebs-csi-default-sc`, created by the EBS CSI driver add-on.
+
+---
+
 ## Step 1 — Deploy the DaemonSet
 
 ```bash

@@ -75,7 +75,7 @@ kubectl get deployment metrics-server -n kube-system
 If not present, install it:
 
 ```bash
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.9.0/components.yaml
 ```
 
 Verify it is running and responding:
@@ -93,8 +93,7 @@ The VPA requires three components: **recommender**, **updater**, and **admission
 
 ```bash
 git clone https://github.com/kubernetes/autoscaler.git /tmp/autoscaler
-cd /tmp/autoscaler/vertical-pod-autoscaler
-./hack/vpa-up.sh
+(cd /tmp/autoscaler/vertical-pod-autoscaler && ./hack/vpa-up.sh)
 ```
 
 Verify all three pods are running:
@@ -410,9 +409,10 @@ The CA uses ASG tags to discover which groups it manages. The EKS Terraform modu
 ```bash
 CLUSTER_NAME=$(cd ../../eks && terraform output -raw cluster_name)
 
-# Find the ASG for the node group
+# Find the ASG for the "general" node group. A GPU node group, if you have
+# one, has its own ASG; filtering on the node group name keeps this to one.
 ASG_NAME=$(aws autoscaling describe-auto-scaling-groups \
-  --query "AutoScalingGroups[?contains(Tags[?Key=='eks:cluster-name'].Value, '${CLUSTER_NAME}')].AutoScalingGroupName" \
+  --query "AutoScalingGroups[?contains(Tags[?Key=='eks:cluster-name'].Value, '${CLUSTER_NAME}') && contains(Tags[?Key=='eks:nodegroup-name'].Value, 'general')].AutoScalingGroupName" \
   --output text)
 
 # Add discovery tags
@@ -424,17 +424,17 @@ aws autoscaling create-or-update-tags \
 
 ### Step 12 — Deploy the Cluster Autoscaler
 
-Edit `manifests/cluster-autoscaler.yaml` and replace the two placeholder values:
+`manifests/cluster-autoscaler.yaml` has two placeholders:
 
-| Placeholder | Replace with |
+| Placeholder | Replaced with |
 |---|---|
-| `ACCOUNT_ID` | Your AWS account ID (`aws sts get-caller-identity --query Account --output text`) |
-| `YOUR_CLUSTER_NAME` | Your cluster name (from `terraform output -raw cluster_name`) |
+| `ACCOUNT_ID` | Your AWS account ID (`$ACCOUNT_ID`, from Step 10) |
+| `YOUR_CLUSTER_NAME` | Your cluster name (`$CLUSTER_NAME`, from Step 10) |
 
-Apply:
+Fill them in with `sed` as you apply, so the file in the repo stays unedited:
 
 ```bash
-kubectl apply -f manifests/cluster-autoscaler.yaml
+sed -e "s/ACCOUNT_ID/${ACCOUNT_ID}/" -e "s/YOUR_CLUSTER_NAME/${CLUSTER_NAME}/g" manifests/cluster-autoscaler.yaml | kubectl apply -f -
 ```
 
 Verify the CA pod starts:
@@ -519,20 +519,21 @@ kubectl get nodes -w
 ## Step 15 — Clean up
 
 ```bash
+CLUSTER_NAME=$(cd ../../eks && terraform output -raw cluster_name)
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
 # Exercise workloads
 kubectl delete -f manifests/target-deployment.yaml
 kubectl delete -f manifests/hpa.yaml
 kubectl delete -f manifests/vpa.yaml
-kubectl delete -f manifests/cluster-autoscaler.yaml
+sed -e "s/ACCOUNT_ID/${ACCOUNT_ID}/" -e "s/YOUR_CLUSTER_NAME/${CLUSTER_NAME}/g" manifests/cluster-autoscaler.yaml | kubectl delete -f -
 kubectl delete pod load-generator --ignore-not-found
 kubectl delete deployment scale-trigger --ignore-not-found
 
 # VPA components (if installed)
-cd /tmp/autoscaler/vertical-pod-autoscaler && ./hack/vpa-down.sh
+(cd /tmp/autoscaler/vertical-pod-autoscaler && ./hack/vpa-down.sh)
 
-# IAM resources (replace CLUSTER_NAME and ACCOUNT_ID)
-CLUSTER_NAME=$(cd ../../eks && terraform output -raw cluster_name)
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+# IAM resources
 POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${CLUSTER_NAME}-cluster-autoscaler"
 aws iam detach-role-policy \
   --role-name "${CLUSTER_NAME}-cluster-autoscaler" \

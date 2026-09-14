@@ -30,10 +30,10 @@ The Service uses a **label selector** to find its backing Pods. Traffic is load-
 
 ## Prerequisites
 
-Deploy the Deployment from exercise 02 first, or apply it directly:
+Deploy the Deployment from exercise 03 first, or apply it directly:
 
 ```bash
-kubectl apply -f ../02-deployments/manifests/deployment.yaml
+kubectl apply -f ../03-deployments/manifests/deployment.yaml
 ```
 
 ---
@@ -149,7 +149,7 @@ kubectl get endpoints web-app-clusterip
 
 ```bash
 kubectl delete -f manifests/
-kubectl delete -f ../02-deployments/manifests/
+kubectl delete -f ../03-deployments/manifests/
 ```
 
 ---

@@ -15,7 +15,7 @@ By the end of this exercise you will be able to:
 
 **ConfigMap** stores non-sensitive configuration (feature flags, log levels, config files).
 
-**Secret** stores sensitive data (passwords, tokens, TLS certs). Values are base64-encoded at rest but are **not encrypted by default**. To encrypt them, enable [Envelope Encryption](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/) with a KMS provider (AWS KMS on EKS).
+**Secret** stores sensitive data (passwords, tokens, TLS certs). In the API, values are only base64-encoded, and base64 is an encoding, not encryption. Whether they're encrypted at rest in etcd depends on the cluster: Kubernetes itself stores them unencrypted unless [encryption at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/) is configured. On EKS 1.28 and later, all Kubernetes API data, Secrets included, is [envelope-encrypted by default](https://docs.aws.amazon.com/eks/latest/userguide/envelope-encryption.html) with an AWS-owned KMS key, or with your own KMS key if you choose one. Encryption at rest doesn't stop anyone with `get secret` permission from reading them.
 
 For production workloads, prefer [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/) with the [External Secrets Operator](https://external-secrets.io/) or the [AWS Secrets and Configuration Provider (ASCP)](https://docs.aws.amazon.com/secretsmanager/latest/userguide/integrating_csi_driver.html) rather than Kubernetes Secrets.
 
@@ -147,7 +147,7 @@ kubectl delete secret db-creds
 
 1. `data` requires pre-encoded base64 values. `stringData` accepts plain text and Kubernetes encodes it. `stringData` is write-only — it does not appear in `kubectl get secret -o yaml`.
 2. No. Environment variables are set at container start and do not update dynamically. You must restart (delete) the Pod or trigger a rollout (`kubectl rollout restart deployment/<name>`).
-3. By default, Secrets are only base64-encoded (not encrypted) in etcd. Any user with `get secret` RBAC permission or direct etcd access can read them.
+3. Anyone with `get secret` RBAC permission (or who can create a Pod that mounts the Secret) reads the plain value: the API only base64-encodes it, and base64 is encoding, not encryption. At rest, upstream Kubernetes stores Secrets unencrypted in etcd unless encryption at rest is configured; EKS 1.28+ envelope-encrypts all API data by default, which protects etcd and its backups, not the API.
 4. Use the [AWS Secrets and Configuration Provider (ASCP)](https://docs.aws.amazon.com/secretsmanager/latest/userguide/integrating_csi_driver.html) with the Secrets Store CSI Driver, which mounts secrets as files and rotates them automatically.
 5. Up to the `--sync-frequency` kubelet flag (default 1 minute) plus the ConfigMap cache TTL (~30 seconds). Expect 60–90 seconds in practice.
 

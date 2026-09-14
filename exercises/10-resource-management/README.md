@@ -33,6 +33,26 @@ The kubelet assigns a QoS class based on requests and limits:
 
 ---
 
+## Prerequisites
+
+The HorizontalPodAutoscaler in Step 5 (and `kubectl top` in exercise 12) needs the Metrics Server. Check whether it's installed:
+
+```bash
+kubectl get deployment metrics-server -n kube-system
+```
+
+If not, install a pinned release and wait for it:
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.9.0/components.yaml
+kubectl -n kube-system rollout status deployment/metrics-server --timeout=180s
+kubectl top nodes
+```
+
+If `kubectl top nodes` returns `error: Metrics API not available`, wait 60 seconds for the first scrape and try again.
+
+---
+
 ## Step 1 — Observe QoS classes
 
 Create a Guaranteed Pod:
@@ -153,10 +173,11 @@ You should see `Error from server (Forbidden)` for Pods beyond the limit of 20.
 
 ## Step 5 — HorizontalPodAutoscaler
 
-First deploy the target Deployment (from exercise 02):
+First deploy the target Deployment (from exercise 03), and the ClusterIP Service from exercise 05 that the load generator sends requests to (exercise 05's clean-up deletes it):
 
 ```bash
 kubectl apply -f ../03-deployments/manifests/deployment.yaml
+kubectl apply -f ../05-services/manifests/clusterip-service.yaml
 kubectl apply -f manifests/hpa.yaml
 ```
 
@@ -167,13 +188,13 @@ kubectl get hpa web-app-hpa
 kubectl describe hpa web-app-hpa
 ```
 
-Generate some CPU load to trigger scale-up:
+Generate some CPU load to trigger scale-up. One request loop isn't enough to push three nginx Pods past 70% of their 50m CPU request, so this runs four loops in parallel:
 
 ```bash
 kubectl run load-generator \
   --image=busybox:1.36 \
   --restart=Never \
-  -- /bin/sh -c "while true; do wget -q -O- http://web-app-clusterip; done"
+  -- /bin/sh -c "for i in 1 2 3 4; do (while true; do wget -q -O- http://web-app-clusterip >/dev/null; done) & done; wait"
 ```
 
 Watch the HPA scale up the Deployment (takes ~1 minute):
@@ -195,7 +216,8 @@ kubectl get hpa web-app-hpa -w
 
 ```bash
 kubectl delete -f manifests/
-kubectl delete -f ../02-deployments/manifests/
+kubectl delete -f ../03-deployments/manifests/
+kubectl delete -f ../05-services/manifests/clusterip-service.yaml
 kubectl delete namespace team-alpha
 kubectl delete pod load-generator --ignore-not-found
 ```

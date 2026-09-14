@@ -46,8 +46,7 @@ Without these tags, the AWS Load Balancer Controller cannot automatically select
 ## Prerequisites
 
 ```bash
-# Set your cluster name — replace with the value from terraform.tfvars
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir=../../eks output -raw cluster_name)
 export AWS_REGION=eu-west-2
 
 # Verify AWS credentials are active

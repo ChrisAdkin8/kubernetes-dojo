@@ -59,7 +59,7 @@ Each node is assigned a primary ENI. The VPC CNI attaches additional ENIs (or as
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir=../../eks output -raw cluster_name)
 export AWS_REGION=eu-west-2
 export NODE_GROUP_NAME=general
 ```

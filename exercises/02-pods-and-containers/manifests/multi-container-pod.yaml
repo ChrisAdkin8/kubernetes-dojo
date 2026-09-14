@@ -32,15 +32,20 @@ spec:
           cpu: "100m"
           memory: "128Mi"
 
-    # Sidecar: tails the nginx access log and writes to stdout
+    # Sidecar: tails a log file in its own filesystem and writes it to stdout.
+    # Containers share volumes, not filesystems, so it can't see nginx's files;
+    # it sees the init container's message through the shared-data volume.
+    # This container crashes on purpose: see Step 6 of the README.
     - name: log-sidecar
       image: busybox:1.36
       command: ["/bin/sh", "-c"]
       args:
         - |
-          mkdir -p /var/log
           touch /var/log/access.log
           tail -f /var/log/access.log
+      volumeMounts:
+        - name: shared-data
+          mountPath: /shared
       resources:
         requests:
           cpu: "10m"

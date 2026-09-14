@@ -53,7 +53,7 @@ A common mistake is attaching all private subnets to a single private route tabl
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir=../../eks output -raw cluster_name)
 export AWS_REGION=eu-west-2
 
 VPC_ID=$(aws ec2 describe-vpcs \

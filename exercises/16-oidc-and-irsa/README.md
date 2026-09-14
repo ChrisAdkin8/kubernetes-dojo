@@ -88,7 +88,7 @@ The EKS Pod Identity webhook reads this annotation and mutates the pod spec to i
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir=../../eks output -raw cluster_name)
 export AWS_REGION=eu-west-2
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 echo "Account: $AWS_ACCOUNT_ID"
@@ -193,7 +193,7 @@ kubectl get serviceaccount s3-reader -o jsonpath='{.metadata.annotations}' | pyt
 kubectl run irsa-test \
   --image=amazon/aws-cli:latest \
   --restart=Never \
-  --serviceaccount=s3-reader \
+  --overrides='{"spec":{"serviceAccountName":"s3-reader"}}' \
   --command -- sleep 3600
 
 # Wait for the pod to be running

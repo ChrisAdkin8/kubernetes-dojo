@@ -8,9 +8,9 @@ metadata:
     k8s-addon: cluster-autoscaler.addons.k8s.io
     k8s-app: cluster-autoscaler
   annotations:
-    # Replace ACCOUNT_ID and CLUSTER_NAME with your values.
+    # The README's sed step (Step 12) fills in both placeholders on the next line.
     # The IAM role must have the cluster-autoscaler policy (see README).
-    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/CLUSTER_NAME-cluster-autoscaler
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/YOUR_CLUSTER_NAME-cluster-autoscaler
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -173,7 +173,7 @@ spec:
             # least-waste: scale up the node group that leaves the least unused capacity.
             - --expander=least-waste
             # Auto-discover node groups from ASG tags set by the EKS Terraform module.
-            # Replace YOUR_CLUSTER_NAME with the cluster name from terraform.tfvars.
+            # The README's sed step (Step 12) fills in the cluster name placeholder.
             - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/YOUR_CLUSTER_NAME
             - --balance-similar-node-groups
             - --skip-nodes-with-system-pods=false

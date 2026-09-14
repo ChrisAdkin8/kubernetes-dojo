@@ -160,7 +160,7 @@ cat /etc/resolv.conf
 
 ## Step 5 — Resource diagnostics
 
-View resource usage (requires Metrics Server):
+View resource usage (requires the Metrics Server; see exercise 10's [Prerequisites](../10-resource-management/README.md#prerequisites) to install it):
 
 ```bash
 # By Pod

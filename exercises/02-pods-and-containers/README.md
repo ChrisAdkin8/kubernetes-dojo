@@ -169,6 +169,8 @@ You will see:
 
 ```
 touch: /var/log/access.log: No such file or directory
+tail: can't open '/var/log/access.log': No such file or directory
+tail: no files
 ```
 
 **Root cause:** `busybox:1.36` is a minimal image — `/var/log/` does not exist. The `touch` command fails, the shell exits non-zero, and Kubernetes restarts the container in a loop.
@@ -242,7 +244,7 @@ exit
 
 ---
 
-## Step 8 — Understand Pod phases
+## Step 7 — Understand Pod phases
 
 Delete and re-create the Pod and watch the phase transitions:
 
@@ -264,10 +266,13 @@ The five Pod phases:
 
 ---
 
-## Step 9 — Clean up
+## Step 8 — Clean up
 
 ```bash
 kubectl delete -f manifests/
+
+# Undo your Step 6.4 fix, so the lab can be run again
+git checkout -- manifests/multi-container-pod.yaml
 ```
 
 ---

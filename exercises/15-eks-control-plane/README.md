@@ -63,7 +63,7 @@ The cluster uses `authentication_mode = "API_AND_CONFIG_MAP"` so both work. The 
 ## Prerequisites
 
 ```bash
-export CLUSTER_NAME=my-eks-cluster
+export CLUSTER_NAME=$(terraform -chdir=../../eks output -raw cluster_name)
 export AWS_REGION=eu-west-2
 
 aws sts get-caller-identity

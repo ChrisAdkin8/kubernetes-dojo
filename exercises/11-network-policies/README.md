@@ -25,20 +25,22 @@ By default, all Pods in a Kubernetes cluster can communicate freely with each ot
 
 ### EKS requirement
 
-The default Amazon VPC CNI does **not** enforce NetworkPolicies. You need one of:
+The Amazon VPC CNI does **not** enforce NetworkPolicies unless its network policy agent is turned on. You need one of:
 
 - [Amazon VPC CNI Network Policy add-on](https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy.html) — AWS-managed, recommended for EKS
 - [Calico](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/eks) — open source, feature-rich
 - [Cilium](https://docs.cilium.io/en/stable/installation/k8s-install-eks/) — eBPF-based, high-performance
 
-Enable the VPC CNI Network Policy add-on:
+The EKS cluster in `eks/` turns on the VPC CNI's network policy agent in Terraform, so there is nothing to install. Check that it's on:
 
 ```bash
-aws eks update-addon \
-  --cluster-name k8s-dojo \
+aws eks describe-addon \
+  --cluster-name "$(terraform -chdir=../../eks output -raw cluster_name)" \
   --addon-name vpc-cni \
-  --configuration-values '{"enableNetworkPolicy": "true"}' \
+  --query addon.configurationValues \
+  --output text \
   --region eu-west-2
+# Expected: {"enableNetworkPolicy":"true"}
 ```
 
 ---
@@ -56,7 +58,7 @@ kubectl run frontend \
 kubectl run backend \
   --image=nginx:1.27-alpine \
   --labels=tier=backend \
-  --expose --port=8080
+  --expose --port=80
 
 # Database
 kubectl run database \
@@ -69,7 +71,7 @@ kubectl run database \
 Verify that all Pods can communicate before any NetworkPolicy is applied:
 
 ```bash
-kubectl exec frontend -- wget -qO- http://backend:8080
+kubectl exec frontend -- wget -qO- http://backend
 kubectl exec backend -- nc -zv database 5432
 ```
 
@@ -84,11 +86,11 @@ kubectl apply -f manifests/deny-all.yaml
 Verify that all traffic is now blocked:
 
 ```bash
-kubectl exec frontend -- wget -T2 -qO- http://backend:8080 2>&1 || echo "BLOCKED"
+kubectl exec frontend -- wget -T2 -qO- http://backend 2>&1 || echo "BLOCKED"
 kubectl exec backend -- nc -zv -w2 database 5432 2>&1 || echo "BLOCKED"
 ```
 
-Both should be blocked.
+Both should be blocked. Under deny-all, the name lookup fails first: `wget` reports `bad address 'backend'` because DNS queries are egress traffic too. Step 4 explains why.
 
 ---
 
@@ -102,9 +104,9 @@ Test:
 
 ```bash
 # Frontend → backend: should work
-kubectl exec frontend -- wget -T2 -qO- http://backend:8080
+kubectl exec frontend -- wget -T2 -qO- http://backend
 # Database → backend: should be blocked
-kubectl exec database -- wget -T2 -qO- http://backend:8080 2>&1 || echo "BLOCKED"
+kubectl exec database -- wget -T2 -qO- http://backend 2>&1 || echo "BLOCKED"
 # Backend → database: should work
 kubectl exec backend -- nc -zv -w2 database 5432
 # Frontend → database: should be blocked
